@@ -50,7 +50,9 @@ export function CardFlow({ card, user, data }: { card: Card; user: User; data: U
   /** 최종 판단의 이유. 모르겠음을 고르면 비운다 — 값이 없는 판단에 이유를 달지 않는다. */
   const [reasons, setReasons] = useState<string[]>([]);
   /** 동의하지 않으면 정책 평가는 이 화면에서만 보여주고 저장하지 않는다 (검토 문서 3장 1번). */
-  const [opinionLocalOnly, setOpinionLocalOnly] = useState(false);
+  // 청소년의 정책 평가는 저장하지 않는다 — 동의를 묻지 않고 처음부터 이 화면에만 둔다 (청소년 트랙, 2026-10-01).
+  const isYouth = data.profile?.audienceType === "youth";
+  const [opinionLocalOnly, setOpinionLocalOnly] = useState(isYouth);
 
   /** 답을 바꾸면 지난 실패 문구를 내린다. */
   const choose =
@@ -167,7 +169,9 @@ export function CardFlow({ card, user, data }: { card: Card; user: User; data: U
             ) : (
               <section>
                 <p className="text-[24px] leading-tight font-light">자료를 확인했어요. 이 정책을 어떻게 보나요?</p>
-                {opinionLocalOnly && <p className="mt-2 text-[14px] text-smoke">이번 답은 저장하지 않아요.</p>}
+                {opinionLocalOnly && (
+                  <p className="mt-2 text-[14px] text-smoke">{isYouth ? "청소년의 정책 평가는 이 기기에만 두고 저장하지 않아요." : "이번 답은 저장하지 않아요."}</p>
+                )}
                 <div className="mt-6">
                   <Scale label="이 정책을 어떻게 보나요" options={SCALE_LABELS.opinion} value={opinion} onChange={pickOpinion} disabled={busy} />
                 </div>

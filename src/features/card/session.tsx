@@ -112,6 +112,13 @@ export function ConsentPanel({ busy, onAgree, onDecline }: { busy: boolean; onAg
         <li>내 평가는 나만 볼 수 있어요. 성향 점수로 합치거나 추천에 쓰지 않아요.</li>
         <li>누가 답했는지 알 수 없는 통통 사용자 전체 분포에는 들어가요. 응답이 30명 넘게 모인 카드만 보여줘요.</li>
         <li>언제든 &lsquo;내 기록&rsquo;에서 철회할 수 있고, 철회하면 저장된 평가도 지워요.</li>
+        <li>
+          자세한 내용은{" "}
+          <Link href="/privacy" className="underline underline-offset-4">
+            개인정보처리방침
+          </Link>
+          에 있어요.
+        </li>
       </ul>
       <div className="mt-8 flex flex-col gap-2">
         <button type="button" onClick={onAgree} disabled={busy} className={primaryButton}>

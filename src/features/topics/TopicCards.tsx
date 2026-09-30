@@ -21,7 +21,8 @@ export function TopicCards({ topic }: { topic: Card["category"] }) {
   const [now] = useState(() => new Date());
 
   const cards = CARDS.map((card, index) => ({ card, index, application: currentApplication(card.policy.applications, now) }))
-    .filter(({ card }) => card.category === topic)
+    // 트랙을 아는 사용자에게는 자기 트랙 카드만. 첫 방문(프로필 없음)에는 모두 보인다.
+    .filter(({ card }) => card.category === topic && (!data.profile || card.audience.includes(data.profile.audienceType)))
     .sort((a, b) => Number(a.application?.state === "closed") - Number(b.application?.state === "closed") || a.index - b.index);
 
   return (

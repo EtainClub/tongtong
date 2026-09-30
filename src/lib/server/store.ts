@@ -9,6 +9,8 @@ import type { JudgmentInput } from "@/lib/judgment";
 import {
   applyCardAction,
   applyJudgment,
+  nextProfile,
+  ProfileRejection,
   JudgmentRejection,
   withoutOpinions,
   type CardAction,
@@ -73,29 +75,25 @@ export async function recordCardAction(uid: string, cardId: string, action: Card
 }
 
 /**
- * 프로필 저장. 청소년 트랙은 만 14세 미만 처리 방침이 정해질 때까지 닫아 둔다 (검토 문서 3장 2번).
+ * 프로필 저장. 규칙은 lib/user-state의 nextProfile — 청소년은 만 14세 이상만, 정책 평가 저장 동의는 받지 않는다.
  * 동의 철회(consentOpinion: false)는 저장된 정책 평가를 함께 지운다.
  */
 export async function saveProfile(uid: string, input: ProfileInput): Promise<Profile> {
-  if (input.audienceType === "youth") throw new Refusal(400, "youth-track-closed");
-
-  const previous = await userRef(uid).get();
-  const hadConsent = typeof previous.get("consent.opinion") === "string";
-  const consent =
-    input.consentOpinion === undefined
-      ? ((previous.get("consent.opinion") as string | null | undefined) ?? null)
-      : input.consentOpinion
-        ? ((previous.get("consent.opinion") as string | null | undefined) ?? new Date().toISOString())
-        : null;
-
-  const interests = input.interests ?? ((previous.get("interests") as Profile["interests"]) ?? []);
-  const profile: Profile = { audienceType: input.audienceType, lifeStages: input.lifeStages, interests, consent: { opinion: consent } };
+  const previousDoc = await userRef(uid).get();
+  const previous = previousDoc.exists ? (previousDoc.data() as Profile) : null;
+  let profile: Profile;
+  try {
+    profile = nextProfile(previous, input, new Date());
+  } catch (error) {
+    if (error instanceof ProfileRejection) throw new Refusal(400, error.code);
+    throw error;
+  }
   await userRef(uid).set(
-    { ...profile, updatedAt: FieldValue.serverTimestamp(), ...(previous.exists ? {} : { createdAt: FieldValue.serverTimestamp() }) },
+    { ...profile, updatedAt: FieldValue.serverTimestamp(), ...(previousDoc.exists ? {} : { createdAt: FieldValue.serverTimestamp() }) },
     { merge: true },
   );
 
-  if (hadConsent && consent === null) await deleteOpinions(uid);
+  if (previous?.consent.opinion && profile.consent.opinion === null) await deleteOpinions(uid);
   return profile;
 }
 

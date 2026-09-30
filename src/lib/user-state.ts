@@ -25,6 +25,8 @@ export const profileInput = z.object({
    * (검토 문서 3장 1번). 생략하면 기존 값을 유지한다. false는 철회 — 저장된 평가도 지운다.
    */
   consentOpinion: z.boolean().optional(),
+  /** 청소년 트랙: 만 14세 이상인지 본인이 확인했다. 만 14세 미만은 받지 않는다 (개인정보 보호법 22조의2). */
+  over14: z.boolean().optional(),
 });
 export type ProfileInput = z.infer<typeof profileInput>;
 
@@ -33,10 +35,52 @@ export type Profile = {
   lifeStages: z.infer<typeof LifeStage>[];
   /** 옛 프로필에는 없다 — 없으면 빈 목록으로 본다. */
   interests?: z.infer<typeof Category>[];
+  /** 청소년이 만 14세 이상임을 확인한 시각. */
+  over14ConfirmedAt?: string;
   /** 동의한 시각. null이면 정책 평가를 서버에 저장하지 않는다. */
   consent: { opinion: string | null };
 };
 
+
+export class ProfileRejection extends Error {
+  constructor(
+    public readonly code:
+      | "over14-required" // 청소년은 만 14세 이상 확인이 있어야 한다
+      | "youth-opinion-local" // 청소년의 정책 평가는 기기에만 둔다 — 저장 동의를 받지 않는다
+      | "audience-downgrade", // 청년이 청소년으로 돌아갈 수는 없다
+  ) {
+    super(code);
+  }
+}
+
+/**
+ * 프로필 저장 규칙 (설계 2·50장, 청소년 트랙 2026-10-01).
+ *
+ * 청소년(만 14–18세)
+ *   - 만 14세 이상 확인이 있어야 받는다. 한 번 확인하면 다시 묻지 않는다.
+ *   - 정책 평가는 저장하지 않는다 — 동의 자체를 받지 않는다. 정치적 견해로 볼 수 있는 값을 미성년자에게서 모으지 않는다.
+ *   - 생활 상황은 청년용 목록이라 비운다.
+ * 청소년 → 청년 전환은 된다. 기록은 그대로 이어진다 (설계 50장). 거꾸로는 안 된다.
+ * 생략한 관심 주제·동의는 앞의 값을 지킨다.
+ */
+export function nextProfile(previous: Profile | null, input: ProfileInput, now: Date): Profile {
+  const youth = input.audienceType === "youth";
+  if (youth && previous?.audienceType === "young_adult") throw new ProfileRejection("audience-downgrade");
+  if (youth && !input.over14 && !previous?.over14ConfirmedAt) throw new ProfileRejection("over14-required");
+  if (youth && input.consentOpinion) throw new ProfileRejection("youth-opinion-local");
+
+  const kept = previous?.consent.opinion ?? null;
+  const consent = youth ? null : input.consentOpinion === undefined ? kept : input.consentOpinion ? (kept ?? now.toISOString()) : null;
+  const over14ConfirmedAt = previous?.over14ConfirmedAt ?? (youth && input.over14 ? now.toISOString() : undefined);
+
+  return {
+    audienceType: input.audienceType,
+    lifeStages: youth ? [] : input.lifeStages,
+    interests: input.interests ?? previous?.interests ?? [],
+    consent: { opinion: consent },
+    ...(over14ConfirmedAt ? { over14ConfirmedAt } : {}),
+  };
+}
 // ── 카드 상태 ────────────────────────────────────────────────────────
 
 export type StoredJudgment = JudgmentWithout<"cardId"> & { at: string };

@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { Category, LifeStage } from "@/content/schema";
+import { Audience as AudienceSchema, Category, LifeStage } from "@/content/schema";
 import { CATEGORY_LABELS, LIFE_STAGE_LABELS } from "@/features/labels";
 import { apiFetch, describeError } from "@/lib/firebase/api";
 import { useAuth } from "@/lib/firebase/auth";
 
 type Stage = (typeof LifeStage.options)[number];
 type Topic = (typeof Category.options)[number];
+type Audience = (typeof AudienceSchema.options)[number];
 
 /**
  * 내 상황과 관심 주제 (설계 2·6장, 로드맵 4.8). 첫 진입과 내 기록의 "바꾸기"가 같이 쓴다.
@@ -24,11 +25,14 @@ export function ProfileForm({
   onSaved,
 }: {
   mode: "onboarding" | "edit";
-  initial?: { lifeStages: Stage[]; interests: Topic[] };
+  initial?: { audienceType: Audience; lifeStages: Stage[]; interests: Topic[] };
   onSaved?: () => void;
 }) {
   const { user } = useAuth();
   const [step, setStep] = useState<1 | 2>(1);
+  const [audience, setAudience] = useState<Audience>(initial?.audienceType ?? "young_adult");
+  /** 첫 진입의 만 14세 이상 확인. 이미 확인한 청소년(수정 화면)은 다시 묻지 않는다. */
+  const [over14, setOver14] = useState(false);
   const [stages, setStages] = useState<Stage[]>(initial?.lifeStages ?? []);
   const [interests, setInterests] = useState<Topic[]>(initial?.interests ?? []);
   const [busy, setBusy] = useState(false);
@@ -47,7 +51,10 @@ export function ProfileForm({
     setBusy(true);
     setError(null);
     try {
-      await apiFetch(user, "/api/profile", { method: "PUT", body: { audienceType: "young_adult", lifeStages: stages, interests: chosen } });
+      await apiFetch(user, "/api/profile", {
+        method: "PUT",
+        body: { audienceType: audience, lifeStages: audience === "youth" ? [] : stages, interests: chosen, ...(audience === "youth" ? { over14 } : {}) },
+      });
       onSaved?.();
     } catch (caught) {
       setError(describeError(caught, "저장하지 못했어요. 다시 시도해 주세요."));
@@ -82,24 +89,68 @@ export function ProfileForm({
       <div key={step} className="step-enter">
         {step === 1 ? (
           <>
-            {mode === "onboarding" && (
+            {/* 청년은 청소년으로 돌아갈 수 없다 — 이미 청년인 사람에게는 고르기를 보여 주지 않는다. */}
+            {(mode === "onboarding" || initial?.audienceType === "youth") && (
               <>
                 <h2 className="mt-10 text-[18px] font-medium">나는 지금</h2>
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  <button type="button" aria-pressed="true" className="rounded-pill border border-ink bg-ink px-5 py-3 text-eggshell">
-                    청년 <span className="font-mono text-[13px] opacity-70">19–34</span>
-                  </button>
-                  {/* 청소년 트랙은 닫혀 있다 — 만 14세 미만 법정대리인 동의 방침 전까지 (검토 문서 3장 2번). 서버도 거절한다. */}
-                  <button type="button" disabled className="rounded-pill border border-stone px-5 py-3 text-smoke">
-                    청소년 <span className="text-[13px]">준비 중</span>
-                  </button>
+                <div role="radiogroup" aria-label="나는 지금" className="mt-4 grid grid-cols-2 gap-2">
+                  {(
+                    [
+                      ["young_adult", "청년", "19–34"],
+                      ["youth", "청소년", "14–18"],
+                    ] as const
+                  ).map(([value, label, ages]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      role="radio"
+                      aria-checked={audience === value}
+                      onClick={() => {
+                        setError(null);
+                        setAudience(value);
+                      }}
+                      className={`rounded-pill border px-5 py-3 ${audience === value ? "pick-pop border-ink bg-ink text-eggshell" : "border-stone hover:border-graphite"}`}
+                    >
+                      {label} <span className="font-mono text-[13px] opacity-70">{ages}</span>
+                    </button>
+                  ))}
                 </div>
               </>
             )}
-            <h2 className="mt-10 text-[18px] font-medium">지금 나와 가까운 것은?</h2>
-            <p className="mt-1 text-[14px] text-smoke">여러 개 골라도 돼요. 카드 순서에만 쓰여요.</p>
-            <Chips options={LifeStage.options} labels={LIFE_STAGE_LABELS} value={stages} onToggle={toggle(setStages)} />
-            <button type="button" onClick={() => setStep(2)} className="mt-12 w-full rounded-pill bg-ink px-6 py-4 text-eggshell">
+            {audience === "youth" ? (
+              // 만 14세 미만은 받지 않는다 (개인정보 보호법 22조의2). 서버도 확인 없이는 거절한다.
+              !initial?.audienceType && (
+                <label className="mt-8 flex items-start gap-3 rounded-card border border-stone p-5">
+                  <input
+                    type="checkbox"
+                    checked={over14}
+                    onChange={(event) => {
+                      setError(null);
+                      setOver14(event.target.checked);
+                    }}
+                    className="mt-1 size-5 accent-ink"
+                  />
+                  <span>
+                    <span className="text-[16px]">만 14세 이상이에요.</span>
+                    <span className="mt-1 block text-[14px] text-graphite">
+                      만 14세 미만은 보호자 동의가 필요해서 아직 쓸 수 없어요. 청소년의 정책 평가는 기기에만 두고 저장하지 않아요.
+                    </span>
+                  </span>
+                </label>
+              )
+            ) : (
+              <>
+                <h2 className="mt-10 text-[18px] font-medium">지금 나와 가까운 것은?</h2>
+                <p className="mt-1 text-[14px] text-smoke">여러 개 골라도 돼요. 카드 순서에만 쓰여요.</p>
+                <Chips options={LifeStage.options} labels={LIFE_STAGE_LABELS} value={stages} onToggle={toggle(setStages)} />
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => setStep(2)}
+              disabled={audience === "youth" && !initial?.audienceType && !over14}
+              className="mt-12 w-full rounded-pill bg-ink px-6 py-4 text-eggshell disabled:opacity-40"
+            >
               다음
             </button>
           </>
@@ -125,6 +176,15 @@ export function ProfileForm({
         )}
       </div>
 
+      {mode === "onboarding" && (
+        <p className="mt-8 text-center text-[13px] text-smoke">
+          시작하면{" "}
+          <Link href="/privacy" className="underline underline-offset-4">
+            개인정보처리방침
+          </Link>
+          에 따라 기록을 다뤄요.
+        </p>
+      )}
       {error && (
         <p role="alert" className="toast-enter mt-4 rounded-sm border border-ink px-4 py-3 text-[14px]">
           {error}

@@ -31,6 +31,7 @@ export function MyRecords() {
   const states = [...data.states.values()];
   const summary = summarize(CARDS, data.states, Category.options);
   const consentAt = data.profile?.consent.opinion ?? null;
+  const isYouth = data.profile?.audienceType === "youth";
 
   async function run(task: () => Promise<unknown>, done: string) {
     setBusy(true);
@@ -147,7 +148,11 @@ export function MyRecords() {
             내 상황 · 관심 주제
           </h2>
           <p className="mt-2 text-[15px] text-graphite">
-            {[...(data.profile?.lifeStages ?? []).map((s) => LIFE_STAGE_LABELS[s]), ...(data.profile?.interests ?? []).map((t) => CATEGORY_LABELS[t])].join(" · ") ||
+            {[
+              ...(isYouth ? ["청소년"] : []),
+              ...(data.profile?.lifeStages ?? []).map((s) => LIFE_STAGE_LABELS[s]),
+              ...(data.profile?.interests ?? []).map((t) => CATEGORY_LABELS[t]),
+            ].join(" · ") ||
               "고른 것이 없어요."}
           </p>
           <p className="mt-1 text-[13px] text-smoke">카드 순서에만 쓰여요.</p>
@@ -162,9 +167,13 @@ export function MyRecords() {
       <details className="mt-3 rounded-card border border-stone p-6 sm:p-8">
         <summary className="cursor-pointer text-[17px]">정책 평가 저장 동의</summary>
         <p className="mt-2 text-[15px] text-graphite">
-          {consentAt ? `${formatDate(Date.parse(consentAt))}에 동의했어요. 철회하면 저장된 정책 평가를 지워요.` : "동의하지 않았어요. 정책 평가는 저장하지 않아요."}
+          {isYouth
+            ? "청소년의 정책 평가는 이 기기에만 두고 저장하지 않아요. 청년이 되면 동의하고 저장할 수 있어요."
+            : consentAt
+              ? `${formatDate(Date.parse(consentAt))}에 동의했어요. 철회하면 저장된 정책 평가를 지워요.`
+              : "동의하지 않았어요. 정책 평가는 저장하지 않아요."}
         </p>
-        <button type="button" disabled={busy || !data.profile} onClick={() => setConsent(!consentAt)} className="mt-4 rounded-pill border border-ink px-5 py-2.5 disabled:opacity-40">
+        <button type="button" hidden={isYouth} disabled={busy || !data.profile} onClick={() => setConsent(!consentAt)} className="mt-4 rounded-pill border border-ink px-5 py-2.5 disabled:opacity-40">
           {consentAt ? "동의 철회" : "동의하기"}
         </button>
       </details>
@@ -211,6 +220,12 @@ export function MyRecords() {
           </button>
         </div>
       </details>
+
+      <p className="mt-10 text-[13px] text-smoke">
+        <Link href="/privacy" className="underline underline-offset-4">
+          개인정보처리방침
+        </Link>
+      </p>
 
       {/* 버튼들이 화면 위쪽에 있어도 결과가 보이도록 아래에 붙인다. */}
       {message && (

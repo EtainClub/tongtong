@@ -1,5 +1,10 @@
+import { aiLearningMaterials } from "./ai-learning-materials";
 import { everyoneTransitCard } from "./everyone-transit-card";
 import { examFeeSupport } from "./exam-fee-support";
+import { highSchoolCredit } from "./high-school-credit";
+import { highSchoolFreeTuition } from "./high-school-free-tuition";
+import { outOfSchoolYouth } from "./out-of-school-youth";
+import { teenCultureNuri } from "./teen-culture-nuri";
 import { workExperience } from "./work-experience";
 import { youngFutureSavings } from "./young-future-savings";
 import { youthChallenge } from "./youth-challenge";
@@ -25,4 +30,10 @@ export const RAW_CARDS: unknown[] = [
   youthChallenge,
   youthTomorrowSavings,
   youthJobLeap,
+  // 청소년 트랙 (2026-10-01). 피드는 audience로 나뉘므로 청년 카드 뒤에 둔다.
+  highSchoolFreeTuition,
+  highSchoolCredit,
+  aiLearningMaterials,
+  teenCultureNuri,
+  outOfSchoolYouth,
 ];

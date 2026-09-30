@@ -7,6 +7,7 @@ import { emptyCardState, type CardState } from "./user-state";
 
 const now = new Date("2026-09-29T12:00:00+09:00");
 const ids = (cards: { id: string }[]) => cards.map((c) => c.id);
+const ADULT_CARDS = CARDS.filter((card) => card.audience.includes("young_adult"));
 const states = (entries: [string, Partial<CardState>][]) =>
   new Map(entries.map(([id, patch]) => [id, { ...emptyCardState(id), ...patch }]));
 
@@ -14,7 +15,7 @@ describe("orderFeed", () => {
   it("생활 상황이 많이 겹치는 카드가 앞에 온다", () => {
     const housing = orderFeed(CARDS, { audienceType: "young_adult", lifeStages: ["living_alone", "housing"] }, new Map(), now);
     expect(housing[0].id).toBe("youth-monthly-rent");
-    expect(housing).toHaveLength(CARDS.length);
+    expect(housing).toHaveLength(ADULT_CARDS.length);
   });
 
   // 카드 데이터가 바뀌어도 규칙을 시험하도록 조건을 직접 만든다.
@@ -63,7 +64,7 @@ describe("orderFeed", () => {
     );
     expect(ids(result)).not.toContain("young-future-savings");
     expect(ids(result)).not.toContain("youth-monthly-rent");
-    expect(result).toHaveLength(CARDS.length - 2);
+    expect(result).toHaveLength(ADULT_CARDS.length - 2);
   });
 
   it("넘긴 지 30일이 지나면 다시 보인다", () => {
@@ -77,7 +78,10 @@ describe("orderFeed", () => {
   });
 
   it("다른 트랙의 카드는 보이지 않는다", () => {
-    expect(orderFeed(CARDS, { audienceType: "youth", lifeStages: [] }, new Map(), now)).toEqual([]);
+    const teen = orderFeed(CARDS, { audienceType: "youth", lifeStages: [] }, new Map(), now);
+    expect(teen.length).toBeGreaterThan(0);
+    expect(teen.every((card) => card.audience.includes("youth"))).toBe(true);
+    expect(ADULT_CARDS.some((card) => teen.includes(card))).toBe(false);
   });
 
   it("판단 값은 순서에 영향을 주지 않는다", () => {

@@ -51,8 +51,20 @@ const enabled = Boolean(process.env.FIRESTORE_EMULATOR_HOST && process.env.FIREB
     await expect(store.recordJudgment(uid, { ...trust, cardId: "no-such-card" })).rejects.toMatchObject({ status: 404 });
   });
 
-  test("청소년 트랙은 아직 받지 않는다", async () => {
-    await expect(store.saveProfile(uid, { audienceType: "youth", lifeStages: [] })).rejects.toMatchObject({ status: 400, reason: "youth-track-closed" });
+  test("청소년은 만 14세 이상만 받고, 정책 평가는 저장하지 않는다", async () => {
+    await expect(store.saveProfile(uid, { audienceType: "youth", lifeStages: [] })).rejects.toMatchObject({ status: 400, reason: "over14-required" });
+    await store.saveProfile(uid, { audienceType: "youth", lifeStages: [], over14: true });
+    await expect(store.saveProfile(uid, { audienceType: "youth", lifeStages: [], consentOpinion: true })).rejects.toMatchObject({ reason: "youth-opinion-local" });
+
+    const teen = CARDS.find((c) => c.audience.includes("youth") && c.flow.opinion)!;
+    const teenBase = { cardId: teen.id, cardVersion: cardVersion(teen), sessionId: "session-teen1" } as const;
+    await store.recordJudgment(uid, { ...teenBase, axis: "trust", phase: "initial", value: 3 });
+    await expect(store.recordJudgment(uid, { ...teenBase, axis: "opinion", phase: "final", value: 4, reasonCodes: [] })).rejects.toMatchObject({ status: 403 });
+
+    // 청년이 되면 기록은 그대로 이어지고, 동의를 받아 정책 평가를 저장할 수 있다. 되돌아갈 수는 없다.
+    await store.saveProfile(uid, { audienceType: "young_adult", lifeStages: ["college"], consentOpinion: true });
+    expect((await db.doc(`users/${uid}/cardStates/${teen.id}`).get()).get("judgments")).toHaveLength(1);
+    await expect(store.saveProfile(uid, { audienceType: "youth", lifeStages: [] })).rejects.toMatchObject({ reason: "audience-downgrade" });
   });
 
   test("동의를 철회하면 저장된 정책 평가만 지운다", async () => {

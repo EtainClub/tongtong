@@ -12,6 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const topics = [...new Set(published.map((card) => card.category))];
   return [
     { url: SITE_URL },
+    { url: `${SITE_URL}/privacy` },
     ...published.map((card) => ({ url: `${SITE_URL}/card/${card.id}`, lastModified: card.reviewedAt })),
     ...topics.map((topic) => ({ url: `${SITE_URL}/topics/${topic}` })),
   ];

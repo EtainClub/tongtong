@@ -26,7 +26,7 @@ export function ProfileEdit() {
   return (
     <ProfileForm
       mode="edit"
-      initial={{ lifeStages: data.profile.lifeStages, interests: data.profile.interests ?? [] }}
+      initial={{ audienceType: data.profile.audienceType, lifeStages: data.profile.lifeStages, interests: data.profile.interests ?? [] }}
       onSaved={() => router.push("/me")}
     />
   );
