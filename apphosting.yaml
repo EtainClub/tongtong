@@ -1,0 +1,67 @@
+# Firebase App Hosting 설정 (백엔드 tongtong, asia-east1).
+#
+# App Hosting은 서울(asia-northeast3)을 지원하지 않는다. Firestore는 서울이라 지역 간 왕복이 생긴다 — 임통과 같다.
+
+runConfig:
+  # 평소에는 인스턴스를 띄워 두지 않는다. 첫 요청이 조금 느린 대신 유휴 비용이 0이다.
+  minInstances: 0
+  # 상한. 몰린다고 요금이 따라 오르면 안 된다. 동시성 80 × 4 = 320건.
+  maxInstances: 4
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+
+env:
+  # 사이트 주소 — API의 Origin 검사가 쓴다. 기본 주소(hosted.app)는 EXTRA로 계속 받는다.
+  - variable: NEXT_PUBLIC_SITE_URL
+    value: https://tt.jamtong.kr
+    availability: [BUILD, RUNTIME]
+  - variable: EXTRA_ALLOWED_ORIGINS
+    value: https://tongtong--tongtongs.asia-east1.hosted.app
+    availability: [RUNTIME]
+
+  # 초안 미리보기(NEXT_PUBLIC_SHOW_DRAFTS)는 2026-09-30 출시와 함께 껐다.
+  # 공개(published) 카드만 보인다. 초안을 확인하려면 로컬에서 `pnpm dev`.
+
+  # 파이어베이스 웹 설정. NEXT_PUBLIC_*은 빌드 때 코드에 박히므로 BUILD를 빠뜨리면 배포본이 조용히 망가진다.
+  # 웹 API 키는 비밀이 아니지만 저장소에 복사하지 않도록 Secret으로 넣는다 (임통과 같다).
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    secret: NEXT_PUBLIC_FIREBASE_API_KEY
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: tongtongs.firebaseapp.com
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: tongtongs
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: tongtongs.firebasestorage.app
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "496695820528"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:496695820528:web:384ce1e6792b188af44235"
+    availability: [BUILD, RUNTIME]
+
+  # AI 따져보기. 키는 Secret Manager에 있다. 모델과 한도는 재배포 없이 여기서 조인다.
+  - variable: ANTHROPIC_API_KEY
+    secret: ANTHROPIC_API_KEY
+    availability: [RUNTIME]
+  - variable: ASK_MODEL
+    value: claude-haiku-4-5
+    availability: [RUNTIME]
+  - variable: ASK_HOURLY_LIMIT
+    value: "20"
+    availability: [RUNTIME]
+  - variable: ASK_DAILY_LIMIT
+    value: "500"
+    availability: [RUNTIME]
+
+  # Cloud Scheduler → /api/cron/*. 이 서비스 계정이 서명한 OIDC 토큰만 받는다 (lib/guard/cron).
+  - variable: CRON_AUDIENCE
+    value: https://tongtong--tongtongs.asia-east1.hosted.app/api/cron
+    availability: [RUNTIME]
+  - variable: CRON_SERVICE_ACCOUNT
+    value: tongtong-scheduler@tongtongs.iam.gserviceaccount.com
+    availability: [RUNTIME]

@@ -1,0 +1,149 @@
+import { FieldValue } from "firebase-admin/firestore";
+
+import { findCard } from "@/content/cards";
+import { cardVersion } from "@/content/schema";
+import type { CorrectionInput } from "@/lib/correction";
+import { auth, db } from "@/lib/firebase/admin";
+import { Refusal } from "@/lib/guard/refusal";
+import type { JudgmentInput } from "@/lib/judgment";
+import {
+  applyCardAction,
+  applyJudgment,
+  JudgmentRejection,
+  withoutOpinions,
+  type CardAction,
+  type CardState,
+  type Profile,
+  type ProfileInput,
+} from "@/lib/user-state";
+
+/*
+ * Firestore 쓰기 계층. 규칙은 lib/user-state.ts의 apply* 함수에 있고, 여기서는
+ * 트랜잭션으로 읽고 → 적용하고 → 쓴다. 판단 요청은 사용자 자신의 문서 두 개만 건드린다 —
+ * 공용 통계 문서에 쓰지 않는다. 집계는 M3의 롤업이 한다 (검토 문서 4.5).
+ */
+
+const userRef = (uid: string) => db.doc(`users/${uid}`);
+const stateRef = (uid: string, cardId: string) => db.doc(`users/${uid}/cardStates/${cardId}`);
+
+function requireCard(cardId: string) {
+  const card = findCard(cardId);
+  if (!card) throw new Refusal(404, "unknown-card");
+  return card;
+}
+
+const REJECTION_STATUS: Record<JudgmentRejection["code"], number> = {
+  "stale-version": 409,
+  "axis-disabled": 400,
+  "consent-required": 403,
+  "no-final-yet": 409,
+  "too-many": 429,
+  "unknown-reason": 400,
+};
+
+export async function recordJudgment(uid: string, input: JudgmentInput): Promise<{ state: CardState; duplicate: boolean }> {
+  const card = requireCard(input.cardId);
+  try {
+    return await db.runTransaction(async (tx) => {
+      const [user, current] = await tx.getAll(userRef(uid), stateRef(uid, card.id));
+      const result = applyJudgment(current.exists ? (current.data() as CardState) : null, input, {
+        currentVersion: cardVersion(card),
+        flow: card.flow,
+        consented: typeof user.get("consent.opinion") === "string",
+        reasonIds: card.reasonOptions.map((reason) => reason.id),
+        now: new Date(),
+      });
+      if (!result.duplicate) tx.set(stateRef(uid, card.id), { ...result.state, updatedAt: FieldValue.serverTimestamp() });
+      return result;
+    });
+  } catch (error) {
+    if (error instanceof JudgmentRejection) throw new Refusal(REJECTION_STATUS[error.code], error.code);
+    throw error;
+  }
+}
+
+export async function recordCardAction(uid: string, cardId: string, action: CardAction): Promise<CardState> {
+  const card = requireCard(cardId);
+  return db.runTransaction(async (tx) => {
+    const current = await tx.get(stateRef(uid, card.id));
+    const next = applyCardAction(current.exists ? (current.data() as CardState) : null, card.id, action, cardVersion(card), new Date());
+    tx.set(stateRef(uid, card.id), { ...next, updatedAt: FieldValue.serverTimestamp() });
+    return next;
+  });
+}
+
+/**
+ * 프로필 저장. 청소년 트랙은 만 14세 미만 처리 방침이 정해질 때까지 닫아 둔다 (검토 문서 3장 2번).
+ * 동의 철회(consentOpinion: false)는 저장된 정책 평가를 함께 지운다.
+ */
+export async function saveProfile(uid: string, input: ProfileInput): Promise<Profile> {
+  if (input.audienceType === "youth") throw new Refusal(400, "youth-track-closed");
+
+  const previous = await userRef(uid).get();
+  const hadConsent = typeof previous.get("consent.opinion") === "string";
+  const consent =
+    input.consentOpinion === undefined
+      ? ((previous.get("consent.opinion") as string | null | undefined) ?? null)
+      : input.consentOpinion
+        ? ((previous.get("consent.opinion") as string | null | undefined) ?? new Date().toISOString())
+        : null;
+
+  const interests = input.interests ?? ((previous.get("interests") as Profile["interests"]) ?? []);
+  const profile: Profile = { audienceType: input.audienceType, lifeStages: input.lifeStages, interests, consent: { opinion: consent } };
+  await userRef(uid).set(
+    { ...profile, updatedAt: FieldValue.serverTimestamp(), ...(previous.exists ? {} : { createdAt: FieldValue.serverTimestamp() }) },
+    { merge: true },
+  );
+
+  if (hadConsent && consent === null) await deleteOpinions(uid);
+  return profile;
+}
+
+async function deleteOpinions(uid: string) {
+  const states = await userRef(uid).collection("cardStates").get();
+  const withOpinion = states.docs.filter((doc) => (doc.data() as CardState).judgments.some((j) => j.axis === "opinion"));
+  for (let offset = 0; offset < withOpinion.length; offset += 450) {
+    const batch = db.batch();
+    for (const doc of withOpinion.slice(offset, offset + 450)) batch.set(doc.ref, withoutOpinions(doc.data() as CardState));
+    await batch.commit();
+  }
+}
+
+/**
+ * 내 기록 삭제 (검토 문서 9장). judgments는 판단 기록만, account는 계정까지.
+ * 집계는 아직 없으므로(M3) 남는 흔적이 없다. 롤업이 생기면 여기서 재계산 큐에 넣는다 — 임통 account/delete.
+ */
+export async function deleteUserData(uid: string, scope: "judgments" | "account") {
+  if (scope === "account") {
+    await db.recursiveDelete(userRef(uid));
+    // 정정 요청에는 연락처가 있을 수 있다 — 계정과 함께 지운다.
+    const corrections = await db.collection("corrections").where("uid", "==", uid).get();
+    await Promise.all(corrections.docs.map((doc) => doc.ref.delete()));
+    await auth.deleteUser(uid);
+    return { scope };
+  }
+  await db.recursiveDelete(userRef(uid).collection("cardStates"));
+  return { scope };
+}
+
+/**
+ * 정정 요청을 접수한다. 운영자만 본다 — 보안 규칙이 클라이언트 읽기·쓰기를 모두 막는다.
+ * 어느 판의 카드를 보고 쓴 것인지 알도록 cardVersion을 함께 남긴다.
+ */
+export async function recordCorrection(uid: string, input: CorrectionInput) {
+  const card = requireCard(input.cardId);
+  if (input.claimId && ![...card.claims, ...card.counterpoints].some((claim) => claim.id === input.claimId)) {
+    throw new Refusal(400, "unknown-claim");
+  }
+  const ref = await db.collection("corrections").add({
+    uid,
+    cardId: card.id,
+    cardVersion: cardVersion(card),
+    claimId: input.claimId ?? null,
+    body: input.body,
+    contact: input.contact || null,
+    status: "open",
+    createdAt: FieldValue.serverTimestamp(),
+  });
+  return { id: ref.id };
+}

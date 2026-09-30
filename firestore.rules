@@ -1,0 +1,28 @@
+rules_version = '2';
+
+// 클라이언트는 자기 문서를 읽기만 한다. 모든 쓰기는 /api/*가 Admin SDK로 하고,
+// 쓰기 규칙은 src/lib/user-state.ts에 있다 (검토 문서 4.5). 규칙은 하위 컬렉션에
+// 상속되지 않으므로 cardStates를 따로 연다. 나머지는 전부 닫는다.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSelf(uid) { return request.auth != null && request.auth.uid == uid; }
+
+    match /users/{uid} {
+      allow read: if isSelf(uid);
+      allow write: if false;
+
+      match /cardStates/{cardId} {
+        allow read: if isSelf(uid);
+        allow write: if false;
+      }
+    }
+
+    // 집계. 작은 수는 서버가 이미 걸러서 쓴다 (lib/stats MIN_PUBLIC). 쓰기는 롤업만.
+    match /cardStats/{cardId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /{document=**} { allow read, write: if false; }
+  }
+}

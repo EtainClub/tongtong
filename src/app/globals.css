@@ -1,0 +1,347 @@
+/* 한글 본문 서체. 구글 폰트에 없어 서브셋 CDN에서 받는다. */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import "tailwindcss";
+
+/*
+ * 디자인 토큰 — 잼통 디자인 시스템 (jamtong/docs/design-system) 그대로.
+ *
+ * 가장 중요한 규칙: UI는 무채색, 색은 데이터에만.
+ * 통통에서 색이 데이터인 곳은 "처음 vs 지금" 비교(navy = 지금, burgundy = 처음)와
+ * 검증 전·기준일 지난 claim(pending)이다. 판단 척도 자체는 입력이므로 무채색이다.
+ * (검토 문서 8장)
+ */
+:root {
+  /* 표면 */
+  --eggshell: #fdfcfc;
+  --taupe: #f5f3f1;
+  --stone: #ebe8e4;
+
+  /* 잉크 */
+  --ink: #000000;
+  --graphite: #44403b;
+  --smoke: #777169;
+  --ash: #a59f97;
+
+  /* 데이터 */
+  --navy: #16366b;
+  --navy-tint: #e3e9f4;
+  --burgundy: #8a2233;
+  --burgundy-tint: #f6e6e8;
+
+  /* 검증 전. 오류가 아니라 "아직 확인되지 않음" */
+  --pending: #8a6a12;
+  --pending-tint: #f6f0df;
+
+  --canvas: var(--eggshell);
+  --text: var(--ink);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-eggshell: var(--eggshell);
+  --color-taupe: var(--taupe);
+  --color-stone: var(--stone);
+
+  --color-ink: var(--ink);
+  --color-graphite: var(--graphite);
+  --color-smoke: var(--smoke);
+  --color-ash: var(--ash);
+
+  --color-navy: var(--navy);
+  --color-navy-tint: var(--navy-tint);
+  --color-burgundy: var(--burgundy);
+  --color-burgundy-tint: var(--burgundy-tint);
+
+  --color-pending: var(--pending);
+  --color-pending-tint: var(--pending-tint);
+
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
+
+  /* 반경은 역할을 말한다 */
+  --radius-input: 4px;
+  --radius-sm: 10px;
+  --radius-card: 20px;
+  --radius-card-lg: 24px;
+  --radius-pill: 9999px;
+}
+
+html {
+  background: var(--canvas);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--canvas);
+  color: var(--text);
+  font-family: var(--font-sans);
+  text-wrap: pretty;
+  /* 한글은 어절 단위로 줄을 바꾼다. 기본값은 "지원받/을"처럼 음절 사이에서 끊는다. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* 고정폭은 숫자에만 — 한글 라벨에 걸면 자간이 벌어진다 (잼통 "수치는 mono"). */
+
+/* 숫자는 표 정렬. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* 키보드 사용자에게만 보이는 포커스 링 */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* 숏츠 한 줄이 올라온다. 씬 전환 값(320–420ms)과 잼통 공용 곡선. 아래 media 규칙이 끈다. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.shorts-line {
+  animation: rise 360ms var(--ease-out-expo) backwards;
+}
+
+/* "통!" — 게임 결과가 공개되는 순간 한 번 튀어오른다 (설계 60장, 로드맵 4.2). 아래 media 규칙이 끈다. */
+@keyframes tong {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.tong-pop {
+  transform-origin: left center;
+  animation: tong 320ms var(--ease-out-expo) both;
+}
+/* 글자 조각에만 inline-block을 준다 — 버튼·칸의 flex 배치를 덮어쓰면 안 된다. */
+span.tong-pop {
+  display: inline-block;
+}
+
+/* 시트가 아래에서 올라온다 (features/ui/Sheet). 아래 media 규칙이 끈다. */
+@keyframes sheet-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+.sheet[open] {
+  animation: sheet-up 280ms var(--ease-out-expo) both;
+}
+
+
+/*
+ * 피드 카드 더미 (features/feed/SwipeDeck). 아래 media 규칙이 모두 끈다.
+ *
+ * 통통 — 오른쪽으로 넘기면 카드가 제자리에서 두 번 튄다. 두 번째가 첫 번째의 절반 높이라
+ * 공이 바닥에 튀는 것처럼 읽힌다. 구간마다 잼통 곡선을 걸어 튀어 오르고 가라앉는다.
+ */
+@keyframes tongtong {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  22% {
+    transform: translateY(-16px) scale(1.04);
+  }
+  44% {
+    transform: translateY(0) scale(0.98);
+  }
+  66% {
+    transform: translateY(-8px) scale(1.02);
+  }
+  84% {
+    transform: translateY(0) scale(0.995);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+.tongtong {
+  animation: tongtong 420ms var(--ease-out-expo) both;
+}
+
+/* "통통!" 도장이 카드 가운데서 튀어나온다. */
+@keyframes tong-stamp {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6) rotate(-10deg);
+  }
+  45% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.12) rotate(-4deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(-4deg);
+  }
+}
+.tong-stamp {
+  animation: tong-stamp 320ms var(--ease-out-expo) both;
+}
+
+/* 뒤에 비치던 카드가 앞자리로 올라온다 — 뒤 카드 자리(아래 12px, 94%)에서 시작한다. */
+@keyframes deck-enter {
+  from {
+    transform: translateY(12px) scale(0.94);
+  }
+}
+.deck-enter {
+  transform-origin: bottom center;
+  animation: deck-enter 320ms var(--ease-out-expo) both;
+}
+/* 새로 뒤에 선 카드는 아래에서 살짝 떠오른다. */
+@keyframes deck-behind {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+.deck-behind {
+  animation: deck-behind 320ms var(--ease-out-expo) 80ms both;
+}
+
+/* 피드 카드의 훅이 카드 화면의 훅으로 옮겨 간다 (React ViewTransition, share="morph"). */
+::view-transition-group(.morph) {
+  animation-duration: 400ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+/* 나머지 화면은 짧게 겹쳐 바뀐다. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 250ms;
+}
+
+/*
+ * 공용 모션 (로드맵 4 — M7 전 모션 점검). 값은 잼통 규칙 그대로: 곡선 하나,
+ * 마이크로 150–250ms, 패널 250–400ms, 씬 320–420ms. 아래 media 규칙이 모두 끈다.
+ */
+
+/* 단계가 바뀌면 새 내용이 아래에서 떠오른다 (카드 흐름, 온보딩). key로 다시 붙여 실행한다. */
+.step-enter {
+  animation: rise 320ms var(--ease-out-expo) backwards;
+}
+
+/* 목록은 한 줄씩 차례로 떠오른다. 여덟 줄이 넘으면 나머지는 함께. */
+.stagger > * {
+  animation: rise 360ms var(--ease-out-expo) backwards;
+}
+.stagger > :nth-child(2) {
+  animation-delay: 60ms;
+}
+.stagger > :nth-child(3) {
+  animation-delay: 120ms;
+}
+.stagger > :nth-child(4) {
+  animation-delay: 180ms;
+}
+.stagger > :nth-child(5) {
+  animation-delay: 240ms;
+}
+.stagger > :nth-child(6) {
+  animation-delay: 300ms;
+}
+.stagger > :nth-child(7) {
+  animation-delay: 360ms;
+}
+.stagger > :nth-child(n + 8) {
+  animation-delay: 420ms;
+}
+
+/* 고른 칸·칩이 한 번 톡 눌린다. 선택 class가 붙는 순간 실행된다. */
+@keyframes pick {
+  0% {
+    transform: scale(0.94);
+  }
+  60% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.pick-pop {
+  animation: pick 200ms var(--ease-out-expo) backwards;
+}
+
+/* 누르는 동안 살짝 들어간다. 사라지는 버튼(disabled)에는 걸지 않는다. */
+button:not(:disabled),
+a.rounded-pill {
+  transition-property: transform, background-color, border-color, color;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-out-expo);
+}
+button:not(:disabled):active,
+a.rounded-pill:active {
+  transform: scale(0.97);
+}
+
+/* 막대가 왼쪽에서 자란다 (분포·주제별 수). */
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+.bar-grow {
+  transform-origin: left center;
+  animation: bar-grow 420ms var(--ease-out-expo) both;
+}
+
+/* 처음 → 지금: navy 점이 처음 자리(--from)에서 지금 자리로 옮겨 간다 (Compare). */
+@keyframes slide-dot {
+  from {
+    left: var(--from);
+  }
+}
+.slide-dot {
+  animation: slide-dot 420ms var(--ease-out-expo) 200ms both;
+}
+
+/* 불러오는 중 문구는 300ms가 넘을 때만 보인다 — 빠른 화면에서 깜빡이지 않게 (로드맵 4.10). */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+.fade-in-late {
+  animation: fade-in 250ms ease-out 300ms both;
+}
+
+/* 알림 상자(오류·되돌리기)가 떠오른다. */
+.toast-enter {
+  animation: rise 250ms var(--ease-out-expo) backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

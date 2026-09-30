@@ -1,0 +1,26 @@
+# 서비스 계정 키. 한 번 커밋되면 지워도 유출된 것으로 본다.
+sa.json
+service-account*.json
+*-service-account.json
+
+/node_modules
+/coverage
+
+/.next/
+/out/
+/build
+
+.DS_Store
+*.pem
+
+npm-debug.log*
+firebase-debug*.log
+firestore-debug.log
+.pnpm-debug.log*
+
+.env*
+!.env.example
+
+*.tsbuildinfo
+next-env.d.ts
+.claude/
