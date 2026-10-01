@@ -1,0 +1,196 @@
+import { z } from "zod";
+
+import { cardVersion, PlacementRole, PlanStage, type Policy } from "@/content/schema";
+import { diffBlueprint } from "@/lib/blueprint/diff";
+import {
+  BlueprintGoalKind,
+  MAX_HORIZON_YEARS,
+  MAX_MILESTONES,
+  MAX_PLACEMENTS,
+  PlacementStatus,
+  STATUS_TRANSITIONS,
+  type Blueprint,
+  type Change,
+  type Placement,
+} from "@/lib/blueprint/model";
+import { monthIndex, YearMonth } from "@/lib/blueprint/month";
+
+/*
+ * 청사진 쓰기 규칙 (청사진 설계 5.2). 클라이언트는 의도(op 목록)만 보내고, 서버가 여기서 다음 모습을 만든다.
+ *
+ * 쓰기 한 번 = REV 하나. 여러 op를 한 번에 보내면 한 REV로 묶인다. 바뀐 것이 없으면 REV를 올리지 않는다(no-change).
+ * 변경 로그는 앞뒤 모습의 diff로 만든다 — op마다 따로 적지 않아서 로그와 실제가 어긋날 수 없다.
+ * Firestore와 떨어져 있어서 단위 테스트가 된다 (lib/user-state와 같은 방식).
+ * 지운 선택 필드는 undefined로 둔다 — 비교(diff)는 없는 것과 같게 보고, 저장할 때 빠진다(server/blueprint-store).
+ */
+
+const id = z.string().regex(/^[a-z0-9-]{1,40}$/);
+const label = z.string().trim().min(1).max(40);
+
+export const blueprintOp = z.discriminatedUnion("op", [
+  z.object({ op: z.literal("addPlacement"), policyId: z.string(), from: YearMonth, to: YearMonth.optional(), role: PlacementRole, milestoneId: id.optional() }),
+  z.object({ op: z.literal("removePlacement"), id }),
+  /** to를 빼면 한 달짜리가 된다 — 기간을 지키려면 클라이언트가 to도 옮겨 보낸다. */
+  z.object({ op: z.literal("movePlacement"), id, from: YearMonth, to: YearMonth.optional() }),
+  z.object({ op: z.literal("setStatus"), id, status: PlacementStatus }),
+  /** 빈 문자열은 메모를 지운다. */
+  z.object({ op: z.literal("setNote"), id, note: z.string().trim().max(200) }),
+  z.object({ op: z.literal("addMilestone"), label, at: YearMonth, stage: PlanStage.optional() }),
+  z.object({ op: z.literal("editMilestone"), id, label: label.optional(), at: YearMonth.optional() }),
+  /** 이 이정표에 딸린 배치는 남고, 이정표 연결만 끊긴다. */
+  z.object({ op: z.literal("removeMilestone"), id }),
+  z.object({ op: z.literal("setGoal"), title: z.string().trim().min(1).max(60).optional(), horizonYear: z.number().int().optional() }),
+]);
+export type BlueprintOp = z.infer<typeof blueprintOp>;
+
+export const blueprintPatchInput = z.object({
+  id,
+  /** 보고 고친 REV. 그 사이 다른 기기에서 바뀌었으면 거절한다(stale-rev) — 덮어쓰지 않는다. */
+  expectedRev: z.number().int().positive(),
+  ops: z.array(blueprintOp).min(1).max(20),
+  intent: z.string().trim().max(80).optional(),
+});
+export type BlueprintPatchInput = z.infer<typeof blueprintPatchInput>;
+
+/** 만들기. 기준 달(asOf)은 서버가 정한다 — 오늘. */
+export const blueprintCreateInput = z.object({
+  pathId: z.string().optional(),
+  kind: BlueprintGoalKind,
+  title: z.string().trim().min(1).max(60),
+  horizonYear: z.number().int().optional(),
+  stage: PlanStage,
+  age: z.number().int().min(14).max(60).optional(),
+});
+export type BlueprintCreateInput = z.infer<typeof blueprintCreateInput>;
+
+export class BlueprintRejection extends Error {
+  constructor(
+    public readonly code:
+      | "unknown-path" // 견본이 없거나 지금 보이지 않는다
+      | "unknown-policy" // 항목이 없거나, 청년 대상이 아니다
+      | "unknown-placement"
+      | "unknown-milestone"
+      | "too-many-placements"
+      | "too-many-milestones"
+      | "invalid-range" // 끝이 시작보다 이르거나, 목표 연도 밖이다
+      | "invalid-horizon" // 목표 연도가 기준 연도 ~ +10년 밖이다
+      | "invalid-transition" // 그 상태에서 갈 수 없는 상태다
+      | "no-change",
+  ) {
+    super(code);
+  }
+}
+
+export type ApplyContext = {
+  policies: ReadonlyMap<string, Policy>;
+  now: Date;
+  /** 새 이정표·배치 id의 꼬리. 서버는 무작위, 테스트는 순번. */
+  newId: () => string;
+};
+
+/** 목표 연도가 기준 연도에서 0–10년 안인가. */
+export function checkHorizon(asOf: string, horizonYear: number) {
+  const base = Number(asOf.slice(0, 4));
+  if (horizonYear < base || horizonYear > base + MAX_HORIZON_YEARS) throw new BlueprintRejection("invalid-horizon");
+}
+
+/** 배치·이정표 기간 — 기준 10년 전부터 목표 연도 끝까지. 끝은 시작보다 이를 수 없다. */
+function checkRange(blueprint: Blueprint, from: string, to?: string) {
+  const lower = monthIndex(blueprint.baseline.asOf) - MAX_HORIZON_YEARS * 12;
+  const upper = blueprint.goal.horizonYear * 12 + 11;
+  const end = monthIndex(to ?? from);
+  if (monthIndex(from) < lower || end > upper || end < monthIndex(from)) throw new BlueprintRejection("invalid-range");
+}
+
+function findPlacement(blueprint: Blueprint, placementId: string): Placement {
+  const placement = blueprint.placements.find((p) => p.id === placementId);
+  if (!placement) throw new BlueprintRejection("unknown-placement");
+  return placement;
+}
+
+function requireMilestone(blueprint: Blueprint, milestoneId: string | undefined) {
+  if (milestoneId && !blueprint.milestones.some((m) => m.id === milestoneId)) throw new BlueprintRejection("unknown-milestone");
+}
+
+/** 청사진에 놓을 수 있는 항목 — 보이는(운영에서는 공개) 청년 대상 항목. */
+export function placeablePolicy(policies: ReadonlyMap<string, Policy>, policyId: string): Policy {
+  const policy = policies.get(policyId);
+  if (!policy || !policy.audience.includes("young_adult")) throw new BlueprintRejection("unknown-policy");
+  return policy;
+}
+
+/** op 하나를 적용한 새 모습. 입력을 바꾸지 않는다. */
+function applyOne(blueprint: Blueprint, op: BlueprintOp, ctx: ApplyContext): Blueprint {
+  const at = ctx.now.toISOString();
+  const withPlacement = (placementId: string, patch: (p: Placement) => Placement) => {
+    findPlacement(blueprint, placementId);
+    return { ...blueprint, placements: blueprint.placements.map((p) => (p.id === placementId ? patch(p) : p)) };
+  };
+
+  switch (op.op) {
+    case "addPlacement": {
+      const policy = placeablePolicy(ctx.policies, op.policyId);
+      if (blueprint.placements.length >= MAX_PLACEMENTS) throw new BlueprintRejection("too-many-placements");
+      requireMilestone(blueprint, op.milestoneId);
+      checkRange(blueprint, op.from, op.to);
+      const placement: Placement = {
+        id: `p-${ctx.newId()}`,
+        policyId: policy.id,
+        policyVersion: cardVersion(policy),
+        ...(op.milestoneId && { milestoneId: op.milestoneId }),
+        from: op.from,
+        ...(op.to && { to: op.to }),
+        role: op.role,
+        status: "planned",
+        statusAt: at,
+      };
+      return { ...blueprint, placements: [...blueprint.placements, placement] };
+    }
+    case "removePlacement":
+      findPlacement(blueprint, op.id);
+      return { ...blueprint, placements: blueprint.placements.filter((p) => p.id !== op.id) };
+    case "movePlacement":
+      checkRange(blueprint, op.from, op.to);
+      return withPlacement(op.id, (p) => ({ ...p, from: op.from, to: op.to }));
+    case "setStatus":
+      return withPlacement(op.id, (p) => {
+        if (p.status === op.status) return p;
+        if (!STATUS_TRANSITIONS[p.status].includes(op.status)) throw new BlueprintRejection("invalid-transition");
+        return { ...p, status: op.status, statusAt: at };
+      });
+    case "setNote":
+      return withPlacement(op.id, (p) => ({ ...p, note: op.note || undefined }));
+    case "addMilestone":
+      if (blueprint.milestones.length >= MAX_MILESTONES) throw new BlueprintRejection("too-many-milestones");
+      checkRange(blueprint, op.at);
+      return { ...blueprint, milestones: [...blueprint.milestones, { id: `m-${ctx.newId()}`, label: op.label, at: op.at, ...(op.stage && { stage: op.stage }) }] };
+    case "editMilestone":
+      requireMilestone(blueprint, op.id);
+      if (op.at) checkRange(blueprint, op.at);
+      return {
+        ...blueprint,
+        milestones: blueprint.milestones.map((m) => (m.id === op.id ? { ...m, ...(op.label && { label: op.label }), ...(op.at && { at: op.at }) } : m)),
+      };
+    case "removeMilestone":
+      requireMilestone(blueprint, op.id);
+      return {
+        ...blueprint,
+        milestones: blueprint.milestones.filter((m) => m.id !== op.id),
+        placements: blueprint.placements.map((p) => (p.milestoneId === op.id ? { ...p, milestoneId: undefined } : p)),
+      };
+    case "setGoal":
+      if (op.horizonYear !== undefined) checkHorizon(blueprint.baseline.asOf, op.horizonYear);
+      return { ...blueprint, goal: { ...blueprint.goal, ...(op.title && { title: op.title }), ...(op.horizonYear !== undefined && { horizonYear: op.horizonYear }) } };
+  }
+}
+
+/**
+ * op 목록을 차례로 적용한다. 하나라도 거절되면 모두 거절한다 — 반쯤 적용된 REV는 없다.
+ * 돌려주는 changes가 그 REV의 변경 로그다.
+ */
+export function applyChanges(prev: Blueprint, ops: readonly BlueprintOp[], ctx: ApplyContext): { next: Blueprint; changes: Change[] } {
+  const applied = ops.reduce((blueprint, op) => applyOne(blueprint, op, ctx), prev);
+  const changes = diffBlueprint(prev, applied);
+  if (changes.length === 0) throw new BlueprintRejection("no-change");
+  return { next: { ...applied, rev: prev.rev + 1, updatedAt: ctx.now.toISOString() }, changes };
+}

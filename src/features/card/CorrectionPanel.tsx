@@ -12,10 +12,11 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 /**
- * 정정 요청 — 공개 화면의 곁가지 (검토 문서 9장).
+ * 정정 요청 — 공개 화면·정책 페이지의 곁가지 (검토 문서 9장).
  * 창구가 화면에 보여야 한다. 접수한 내용은 공개하지 않고 운영자만 본다.
+ * 사실은 정책 항목에 있으므로 카드도 항목도 받는다 (id가 같다).
  */
-export function CorrectionPanel({ card }: { card: Card }) {
+export function CorrectionPanel({ card }: { card: Pick<Card, "id" | "claims" | "counterpoints"> }) {
   const { user } = useAuth();
   const [claimId, setClaimId] = useState("");
   const [body, setBody] = useState("");
@@ -57,7 +58,7 @@ export function CorrectionPanel({ card }: { card: Card }) {
     <div>
       {sent ? (
         <p role="status" className="text-[15px]">
-          보내 주셔서 고마워요. 근거를 확인해 고칠 것은 고치고, 고친 내용은 카드의 개정 기록에 남겨요.
+          보내 주셔서 고마워요. 근거를 확인해 고칠 것은 고치고, 고친 내용은 개정 기록에 남겨요.
         </p>
       ) : (
         <form onSubmit={submit} className="flex flex-col gap-4">
@@ -67,7 +68,7 @@ export function CorrectionPanel({ card }: { card: Card }) {
               어느 내용인가요? <span className="text-smoke">(선택)</span>
             </span>
             <select value={claimId} onChange={edit(setClaimId)} className="rounded-input border border-stone bg-eggshell px-3 py-2.5 text-[16px] focus:border-ink">
-              <option value="">카드 전체</option>
+              <option value="">전체</option>
               {claims.map((claim) => (
                 <option key={claim.id} value={claim.id}>
                   {claim.text.length > 40 ? `${claim.text.slice(0, 40)}…` : claim.text}

@@ -18,6 +18,7 @@ import { CATEGORY_LABELS } from "@/features/labels";
 import { useCardMetrics } from "@/features/metrics/useCardMetrics";
 import { Scale } from "@/features/ui/Scale";
 import type { UserData } from "@/lib/firebase/user-data";
+import { hasSeenFacts } from "@/lib/seen-facts";
 import { HOOK_ACCURACY_LABELS, SCALE_LABELS, type HookAccuracy, type ScaleValue } from "@/lib/judgment";
 
 /*
@@ -33,13 +34,23 @@ type Step = "shorts" | "trust" | "game" | "reveal" | "opinion" | "done";
 export function CardFlow({ card, user, data }: { card: Card; user: User; data: UserData }) {
   const session = useCardSession(card, user, data);
   const metrics = useCardMetrics(card.id);
-  useEffect(() => metrics.event("card_open"), [metrics]);
+  /**
+   * 정책 페이지에서 사실을 먼저 봤으면 훅 판단(처음 신뢰·훅 정확도)을 묻지 않는다 — 이미 답을 안다 (청사진 설계 2.5).
+   * 카드를 연 순간에 정한다.
+   */
+  const [informed] = useState(() => hasSeenFacts(card.id));
+  const askHook = card.flow.trust && !informed;
+  useEffect(() => {
+    metrics.event("card_open");
+    // 첫 판단 도달률의 분모에서 뺀다 — 훅 판단을 묻지 않은 열람이다.
+    if (informed && card.flow.trust) metrics.event("card_open_informed");
+  }, [metrics, informed, card.flow.trust]);
   const { state, consented, busy, error, clearError, record } = session;
   const [now] = useState(() => new Date());
 
   const steps = useMemo<Step[]>(
-    () => ["shorts", ...(card.flow.trust ? (["trust"] as const) : []), "game", "reveal", ...(card.flow.opinion ? (["opinion"] as const) : []), "done"],
-    [card.flow],
+    () => ["shorts", ...(askHook ? (["trust"] as const) : []), "game", "reveal", ...(card.flow.opinion ? (["opinion"] as const) : []), "done"],
+    [askHook, card.flow.opinion],
   );
   const [stepIndex, setStepIndex] = useState(0);
   const step = steps[stepIndex];
@@ -88,7 +99,7 @@ export function CardFlow({ card, user, data }: { card: Card; user: User; data: U
   }
 
   async function confirmReveal() {
-    if (card.flow.trust) {
+    if (askHook) {
       if (!accuracy) return;
       if (!(await record({ axis: "hookAccuracy", phase: "final", value: accuracy }))) return;
     }
@@ -137,7 +148,7 @@ export function CardFlow({ card, user, data }: { card: Card; user: User; data: U
             <>
               <Reveal card={card} now={now} />
               <Investigate card={card} now={now} />
-              {card.flow.trust && (
+              {askHook && (
                 <section className="mt-12 border-t border-stone pt-8">
                   <p className="text-[18px]">처음 본 문장은 어땠나요?</p>
                   <blockquote className="mt-2 text-graphite">“{card.hook}”</blockquote>
@@ -157,7 +168,7 @@ export function CardFlow({ card, user, data }: { card: Card; user: User; data: U
                   </div>
                 </section>
               )}
-              <button type="button" onClick={confirmReveal} disabled={(card.flow.trust && !accuracy) || busy} className={`mt-10 ${primaryButton}`}>
+              <button type="button" onClick={confirmReveal} disabled={(askHook && !accuracy) || busy} className={`mt-10 ${primaryButton}`}>
                 다음
               </button>
             </>

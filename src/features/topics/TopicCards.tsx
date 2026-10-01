@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { CARDS } from "@/content/cards";
+import { CARDS, findCard } from "@/content/cards";
+import { POLICIES } from "@/content/policies";
 import type { Card } from "@/content/schema";
 import { APPLICATION_LABELS, CATEGORY_DESCRIPTIONS, CATEGORY_LABELS } from "@/features/labels";
 import { useAuth } from "@/lib/firebase/auth";
@@ -20,10 +21,14 @@ export function TopicCards({ topic }: { topic: Card["category"] }) {
   const data = useUserData();
   const [now] = useState(() => new Date());
 
+  // 트랙을 아는 사용자에게는 자기 트랙 것만. 첫 방문(프로필 없음)에는 모두 보인다.
+  const inTopic = (item: Pick<Card, "category" | "audience">) =>
+    item.category === topic && (!data.profile || item.audience.includes(data.profile.audienceType));
+
   const cards = CARDS.map((card, index) => ({ card, index, application: currentApplication(card.policy.applications, now) }))
-    // 트랙을 아는 사용자에게는 자기 트랙 카드만. 첫 방문(프로필 없음)에는 모두 보인다.
-    .filter(({ card }) => card.category === topic && (!data.profile || card.audience.includes(data.profile.audienceType)))
+    .filter(({ card }) => inTopic(card))
     .sort((a, b) => Number(a.application?.state === "closed") - Number(b.application?.state === "closed") || a.index - b.index);
+  const entries = POLICIES.filter((policy) => inTopic(policy) && !findCard(policy.id));
 
   return (
     <main id="main" className="mx-auto max-w-xl px-5 pt-6 pb-16">
@@ -58,6 +63,26 @@ export function TopicCards({ topic }: { topic: Card["category"] }) {
             );
           })}
         </ul>
+      )}
+
+      {/* 카드가 아직 없는 정책 항목 (청사진 설계 2.4) — 따져보기 없이 사실만 있는 정책 페이지로 간다. */}
+      {entries.length > 0 && (
+        <section aria-labelledby="entries-title" className="mt-12">
+          <h2 id="entries-title" className="text-[18px] font-medium">
+            카드가 아직 없는 정책
+          </h2>
+          <p className="mt-1 text-[14px] text-smoke">따져보기 없이, 무엇을 지원하는지와 원자료만 있어요.</p>
+          <ul className="mt-4 flex flex-col">
+            {entries.map((policy) => (
+              <li key={policy.id}>
+                <Link href={`/policy/${policy.id}`} className="block border-t border-stone py-4 hover:text-graphite">
+                  <span className="text-[16px]">{policy.name}</span>
+                  {policy.summary && <span className="mt-1 block text-[14px] text-graphite">{policy.summary}</span>}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
     </main>
   );

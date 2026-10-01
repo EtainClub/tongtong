@@ -7,7 +7,7 @@ import { claimState, currentApplication, endOf, startOf } from "@/lib/policy-sta
  * 검증 전·기준일 지난 claim은 pending 색 — 틀렸다는 뜻이 아니라 "아직 확인 전"이다.
  */
 
-function EvidenceChip({ source }: { source: Source }) {
+export function EvidenceChip({ source }: { source: Source }) {
   const label = `${source.publisher}${source.publishedAt ? ` · ${formatDate(startOf(source.publishedAt))}` : ""}`;
   const className = "inline-flex rounded-pill border border-stone px-2.5 py-0.5 text-[12px] text-graphite tabular";
   return source.url ? (
@@ -38,10 +38,31 @@ export function ClaimItem({ claim, sources, now }: { claim: Claim; sources: Map<
   );
 }
 
+/** 지금 회차의 신청 상태 — 카드 공개 화면과 정책 페이지가 같이 쓴다. 회차가 없으면 그리지 않는다. */
+export function ApplicationBox({ applications, now }: { applications: Card["policy"]["applications"]; now: Date }) {
+  const application = currentApplication(applications, now);
+  if (!application) return null;
+  return (
+    <div className="mt-4 rounded-sm border border-stone p-4 text-[14px]">
+      <p>
+        <span className="font-medium">{application.app.label} {APPLICATION_LABELS[application.state]}</span>
+        <span className="ml-2 font-mono text-graphite tabular">
+          {formatShortDate(startOf(application.app.startAt))}–{formatShortDate(endOf(application.app.endAt))}
+        </span>
+      </p>
+      {application.app.note && <p className="mt-1 text-graphite">{application.app.note}</p>}
+      {application.app.url && application.state !== "closed" && (
+        <a href={application.app.url} target="_blank" rel="noreferrer" className="mt-2 inline-block underline underline-offset-4">
+          공식 신청처 ↗
+        </a>
+      )}
+    </div>
+  );
+}
+
 export function Reveal({ card, now }: { card: Card; now: Date }) {
   const sources = new Map(card.sources.map((s) => [s.id, s]));
   const claims = new Map(card.claims.map((c) => [c.id, c]));
-  const application = currentApplication(card.policy.applications, now);
 
   return (
     <section aria-labelledby="reveal-title">
@@ -49,22 +70,7 @@ export function Reveal({ card, now }: { card: Card; now: Date }) {
         실제로는
       </h2>
 
-      {application && (
-        <div className="mt-4 rounded-sm border border-stone p-4 text-[14px]">
-          <p>
-            <span className="font-medium">{application.app.label} {APPLICATION_LABELS[application.state]}</span>
-            <span className="ml-2 font-mono text-graphite tabular">
-              {formatShortDate(startOf(application.app.startAt))}–{formatShortDate(endOf(application.app.endAt))}
-            </span>
-          </p>
-          {application.app.note && <p className="mt-1 text-graphite">{application.app.note}</p>}
-          {application.app.url && application.state !== "closed" && (
-            <a href={application.app.url} target="_blank" rel="noreferrer" className="mt-2 inline-block underline underline-offset-4">
-              공식 신청처 ↗
-            </a>
-          )}
-        </div>
-      )}
+      <ApplicationBox applications={card.policy.applications} now={now} />
 
       <ul className="stagger mt-6 flex flex-col gap-4">
         {card.reveal.claimIds.map((id) => {
@@ -101,7 +107,7 @@ const SOURCE_TYPE_LABELS: Record<Source["type"], string> = {
  * 원자료 목록 (설계 56장 /card/{id}/sources를 카드 안 시트로).
  * 출처마다 그 출처에 기댄 문장을 모두 모은다 — 공개 화면에 안 뜬 claim까지.
  */
-export function SourceList({ card, now }: { card: Card; now: Date }) {
+export function SourceList({ card, now }: { card: Pick<Card, "sources" | "claims" | "counterpoints">; now: Date }) {
   const sources = new Map(card.sources.map((s) => [s.id, s]));
   const allClaims = [...card.claims, ...card.counterpoints];
 

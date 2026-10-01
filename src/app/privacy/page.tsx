@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 /**
  * 개인정보처리방침 (개인정보 보호법 30조).
  * 적힌 항목은 코드가 실제로 받는 것과 같아야 한다 — 받는 것을 바꾸면 이 페이지도 같이 고친다.
- *   users/{uid}, users/{uid}/cardStates, corrections, metrics(합계), aiCache(추천 질문 답), Cloud Logging(30일)
+ *   users/{uid}, users/{uid}/cardStates, users/{uid}/blueprints(+versions), corrections, metrics(합계), aiCache(추천 질문 답), Cloud Logging(30일)
  */
 const OPERATOR_EMAIL = "etainclub@gmail.com";
 const EFFECTIVE = "2026년 10월 1일";
@@ -37,6 +37,10 @@ export default function PrivacyPage() {
             ["판단 기록 — 처음 본 문장을 얼마나 믿었는지, 사실을 본 뒤 어땠는지", "내 기록·판단 이력에 보여 주고, 누가 답했는지 알 수 없는 전체 분포(30명 넘게 모인 카드만)에 써요."],
             ["정책 평가와 그 이유", "청년이 따로 동의한 경우에만 저장해요. 정치적 견해로 볼 수 있어서예요. 청소년의 정책 평가는 저장하지 않아요."],
             ["저장·패스·보류한 카드", "피드 순서와 저장한 카드 목록에 써요."],
+            [
+              "청사진 (만든 경우) — 목표, 지금 학적·단계, 만 나이(선택), 이정표, 넣은 정책과 그 상태·메모, 고친 기록",
+              "내 청사진을 보여 주고 무엇이 왜 바뀌었는지 남기는 데만 써요. 나만 볼 수 있고, 집계나 추천에 쓰지 않아요. 청년만 만들 수 있어요.",
+            ],
             ["정정 요청 내용, 회신 받을 연락처 (선택)", "카드 내용을 확인하고 고치는 데만 써요. 운영자만 봐요."],
             ["Google 계정 연결 시 — 이메일·이름·프로필 사진 주소", "로그인 확인에만 써요. 판단 기록에는 남기지 않아요."],
           ]}
@@ -44,7 +48,8 @@ export default function PrivacyPage() {
         <p className="mt-4 text-[15px] leading-relaxed text-graphite">
           <strong className="font-medium text-ink">자동으로 남는 것.</strong> 서버 접속 기록(IP 주소, 요청 시각)은 오류 확인과 남용 방지를 위해 30일 동안
           남았다가 지워져요. 봇을 막기 위해 Google reCAPTCHA가 브라우저 정보를 확인해요. 이용 통계는 날짜별·카드별 합계만 남기고 누가 했는지는 남기지
-          않아요. 재방문을 세기 위해 이 브라우저가 처음 온 날짜만 브라우저 안에 저장해요.
+          않아요. 재방문을 세기 위해 이 브라우저가 처음 온 날짜만 브라우저 안에 저장해요. 정책 페이지에서 내용을 미리 본 정책도 브라우저 안에만
+          기억해요 — 그 정책 카드를 열 때 처음 문장을 묻지 않기 위해서예요. 서버로 보내지 않아요.
         </p>
         <p className="mt-3 text-[15px] leading-relaxed text-graphite">
           <strong className="font-medium text-ink">AI에게 묻기.</strong> 질문은 답을 만들기 위해 Anthropic에 보내지고, 통통은 질문과 답을 저장하지 않아요.

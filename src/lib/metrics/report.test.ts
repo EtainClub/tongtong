@@ -19,6 +19,14 @@ describe("buildReport", () => {
     expect(report.visits).toEqual({ first: 3, return: 1 });
   });
 
+  it("사실을 먼저 보고 연 카드는 첫 판단 분모에서 뺀다", () => {
+    const docs: DailyDoc[] = [{ date: "2026-10-01", cards: { a: { card_open: 5, card_open_informed: 1, trust_done: 2, final_done: 4 } } }];
+    const report = buildReport(docs, [], "2026-10-01");
+    expect(report.firstJudgment).toEqual({ numerator: 2, denominator: 4, rate: 0.5 });
+    expect(report.perCard.a.firstJudgment.denominator).toBe(4);
+    expect(report.finalJudgment.denominator).toBe(5); // 최종 판단은 그대로 묻는다
+  });
+
   it("분모가 0이면 비율을 만들지 않는다", () => {
     expect(buildReport([], [], "2026-10-01").firstJudgment.rate).toBeNull();
   });

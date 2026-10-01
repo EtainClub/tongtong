@@ -1,0 +1,199 @@
+import { describe, expect, it } from "vitest";
+
+import { ALL_PATHS } from "@/content/paths";
+import { ALL_POLICIES } from "@/content/policies";
+import { applyChanges, BlueprintRejection, type BlueprintOp } from "@/lib/blueprint/apply";
+import { certaintyOf } from "@/lib/blueprint/certainty";
+import { diffBlueprint } from "@/lib/blueprint/diff";
+import { emptyBlueprint, materialize, pathHorizonYear } from "@/lib/blueprint/materialize";
+import { blueprintSchema, type Blueprint } from "@/lib/blueprint/model";
+import { addMonths, halfIndex, halfLabel, monthOf, overlaps } from "@/lib/blueprint/month";
+import { timelineBands } from "@/lib/blueprint/timeline";
+
+const policies = new Map(ALL_POLICIES.map((policy) => [policy.id, policy]));
+const phd = ALL_PATHS.find((path) => path.id === "phd-stem")!;
+const now = new Date("2026-10-01T03:00:00Z");
+const baseline = { asOf: "2026-10", stage: "undergrad" as const };
+
+function fromPath(): Blueprint {
+  return materialize(phd, policies, { id: "bp1", baseline, now });
+}
+
+function ctx() {
+  let n = 0;
+  return { policies, now: new Date("2026-10-02T03:00:00Z"), newId: () => String(++n) };
+}
+
+const rejection = (fn: () => unknown) => {
+  try {
+    fn();
+  } catch (error) {
+    return error instanceof BlueprintRejection ? error.code : error;
+  }
+  return null;
+};
+
+describe("month", () => {
+  it("달 더하기·반기·겹침", () => {
+    expect(addMonths("2026-10", 3)).toBe("2027-01");
+    expect(addMonths("2026-10", -10)).toBe("2025-12");
+    expect(halfLabel(halfIndex("2027-03"))).toBe("2027 상반기");
+    expect(halfLabel(halfIndex("2027-07"))).toBe("2027 하반기");
+    expect(overlaps("2026-07", "2026-11", "2026-11", undefined)).toBe(true);
+    expect(overlaps("2026-07", "2026-10", "2026-11", "2027-01")).toBe(false);
+  });
+
+  it("시각이 있는 신청 회차는 한국 시간의 달로 읽는다", () => {
+    expect(monthOf("2025-11-30T23:30:00+09:00")).toBe("2025-11");
+    expect(monthOf("2026-03-06")).toBe("2026-03");
+  });
+});
+
+describe("materialize", () => {
+  it("견본의 상대 시점을 기준 달에 더한다", () => {
+    const blueprint = fromPath();
+    expect(blueprintSchema.safeParse(blueprint).success).toBe(true);
+    expect(blueprint.rev).toBe(1);
+    expect(blueprint.milestones.find((m) => m.id === "master")?.at).toBe("2028-10");
+    const stipend = blueprint.placements.find((p) => p.id === "stipend")!;
+    expect([stipend.from, stipend.to]).toEqual(["2028-10", "2034-09"]);
+    expect(stipend.status).toBe("planned");
+    expect(blueprint.goal).toMatchObject({ kind: "degree", pathId: "phd-stem", horizonYear: 2034 });
+  });
+
+  it("목표 연도는 10년을 넘지 않는다", () => {
+    expect(pathHorizonYear(phd, "2026-10")).toBeLessThanOrEqual(2036);
+  });
+
+  it("보이지 않는 항목을 가리키는 칸은 건너뛴다", () => {
+    const without = new Map([...policies].filter(([id]) => id !== "bk21-four"));
+    expect(materialize(phd, without, { id: "bp1", baseline, now }).placements.some((p) => p.policyId === "bk21-four")).toBe(false);
+  });
+});
+
+describe("certaintyOf", () => {
+  const loan = policies.get("income-contingent-loan")!; // 2026학년도 2학기 회차: 2026-07–11
+  const scholarship = policies.get("national-scholarship")!; // recurrence: rounds
+  const stipend = policies.get("stem-research-stipend")!; // 회차·recurrence 없음
+
+  it("시작 달이 신청 회차 안이면 확정", () => {
+    expect(certaintyOf({ from: "2026-10" }, loan)).toBe("confirmed");
+    expect(certaintyOf({ from: "2026-10", to: "2034-09" }, loan)).toBe("confirmed");
+  });
+
+  it("회차가 끝난 뒤에 시작하면 확정이 아니다 — 기간이 회차에 걸쳐도", () => {
+    expect(certaintyOf({ from: "2026-12" }, loan)).toBe("undetermined");
+    expect(certaintyOf({ from: "2026-06", to: "2027-06" }, loan)).toBe("undetermined");
+  });
+
+  it("다시 열린다는 근거만 있으면 예상", () => {
+    expect(certaintyOf({ from: "2028-03" }, scholarship)).toBe("expected");
+  });
+
+  it("근거가 없으면 미정", () => {
+    expect(certaintyOf({ from: "2028-10" }, stipend)).toBe("undetermined");
+    expect(certaintyOf({ from: "2028-10" }, undefined)).toBe("undetermined");
+  });
+
+  it("그 전에 끝나는 정책은 미정", () => {
+    const ended = { ...scholarship, policy: { ...scholarship.policy, history: [{ date: "2027-02-28", kind: "ended" as const, summary: "종료", sourceIds: ["korea-2025-11-20"] }] } };
+    expect(certaintyOf({ from: "2028-03" }, ended)).toBe("undetermined");
+  });
+});
+
+describe("applyChanges", () => {
+  const apply = (ops: BlueprintOp[], prev = fromPath()) => applyChanges(prev, ops, ctx());
+
+  it("op 여러 개는 REV 하나", () => {
+    const { next, changes } = apply([
+      { op: "setStatus", id: "scholarship", status: "applied" },
+      { op: "addMilestone", label: "학부 졸업", at: "2028-08", stage: "graduated_unemployed" },
+    ]);
+    expect(next.rev).toBe(2);
+    expect(changes.map((c) => c.op).sort()).toEqual(["milestone", "status"]);
+    expect(next.placements.find((p) => p.id === "scholarship")?.statusAt).toBe("2026-10-02T03:00:00.000Z");
+  });
+
+  it("배치 넣기 — 항목의 지금 버전을 적고 계획 상태로 시작한다", () => {
+    const { next, changes } = apply([{ op: "addPlacement", policyId: "youth-tomorrow-savings", from: "2027-03", to: "2030-02", role: "asset" }]);
+    const added = next.placements.at(-1)!;
+    expect(added).toMatchObject({ id: "p-1", policyId: "youth-tomorrow-savings", policyVersion: 1, status: "planned" });
+    expect(changes).toEqual([{ op: "add", targetId: "p-1", before: null, after: { policyId: "youth-tomorrow-savings", from: "2027-03", to: "2030-02", role: "asset" } }]);
+  });
+
+  it("청년 대상이 아니거나 없는 항목은 놓을 수 없다", () => {
+    expect(rejection(() => apply([{ op: "addPlacement", policyId: "high-school-credit", from: "2027-03", role: "skill" }]))).toBe("unknown-policy");
+    expect(rejection(() => apply([{ op: "addPlacement", policyId: "nowhere", from: "2027-03", role: "skill" }]))).toBe("unknown-policy");
+  });
+
+  it("기간 — 끝이 시작보다 이르거나 목표 연도를 넘으면 거절", () => {
+    expect(rejection(() => apply([{ op: "movePlacement", id: "rent", from: "2029-01", to: "2028-12" }]))).toBe("invalid-range");
+    expect(rejection(() => apply([{ op: "movePlacement", id: "rent", from: "2035-01" }]))).toBe("invalid-range");
+  });
+
+  it("옮기면 move 하나만 남는다", () => {
+    const { changes } = apply([{ op: "movePlacement", id: "rent", from: "2029-03", to: "2031-02" }]);
+    expect(changes).toEqual([{ op: "move", targetId: "rent", before: { from: "2028-10", to: "2030-09" }, after: { from: "2029-03", to: "2031-02" } }]);
+  });
+
+  it("상태 전이 표 밖으로는 갈 수 없다", () => {
+    expect(rejection(() => apply([{ op: "setStatus", id: "rent", status: "done" }]))).toBe("invalid-transition");
+    const done = apply([{ op: "setStatus", id: "rent", status: "active" }]).next;
+    expect(apply([{ op: "setStatus", id: "rent", status: "done" }], done).next.placements.find((p) => p.id === "rent")?.status).toBe("done");
+  });
+
+  it("바뀐 것이 없으면 REV를 올리지 않는다", () => {
+    expect(rejection(() => apply([{ op: "setStatus", id: "rent", status: "planned" }]))).toBe("no-change");
+  });
+
+  it("하나라도 거절되면 모두 거절한다", () => {
+    expect(rejection(() => apply([{ op: "setStatus", id: "rent", status: "ready" }, { op: "removePlacement", id: "nowhere" }]))).toBe("unknown-placement");
+  });
+
+  it("이정표를 지우면 배치는 남고 연결만 끊긴다", () => {
+    const { next } = apply([{ op: "removeMilestone", id: "master" }]);
+    expect(next.milestones.some((m) => m.id === "master")).toBe(false);
+    const stipend = next.placements.find((p) => p.id === "stipend")!;
+    expect(stipend.milestoneId).toBeUndefined();
+  });
+
+  it("메모를 비우면 지운다", () => {
+    const noted = apply([{ op: "setNote", id: "rent", note: "학교 근처" }]).next;
+    const { next, changes } = apply([{ op: "setNote", id: "rent", note: "" }], noted);
+    expect(next.placements.find((p) => p.id === "rent")?.note).toBeUndefined();
+    expect(changes).toEqual([{ op: "note", targetId: "rent", before: { note: "학교 근처" }, after: { note: null } }]);
+  });
+
+  it("목표 연도는 기준 연도에서 10년 안", () => {
+    expect(rejection(() => apply([{ op: "setGoal", horizonYear: 2037 }]))).toBe("invalid-horizon");
+    expect(apply([{ op: "setGoal", horizonYear: 2036, title: "박사 후 연구원" }]).next.goal).toMatchObject({ horizonYear: 2036, title: "박사 후 연구원" });
+  });
+
+  it("상한 — 배치 40개", () => {
+    const full = { ...emptyBlueprint({ id: "bp2", baseline, now, goal: { kind: "other", title: "x", horizonYear: 2030 } }) };
+    full.placements = Array.from({ length: 40 }, (_, i) => ({ ...fromPath().placements[0], id: `p-x${i}` }));
+    expect(rejection(() => apply([{ op: "addPlacement", policyId: "youth-monthly-rent", from: "2027-01", role: "housing" }], full))).toBe("too-many-placements");
+  });
+});
+
+describe("timelineBands", () => {
+  it("반기마다 이정표와 그 반기에 시작하는 배치를 모으고, 빈 반기는 지금만 남긴다", () => {
+    const bands = timelineBands(fromPath(), "2026-10");
+    expect(bands.map((b) => halfLabel(b.half))).toEqual(["2026 하반기", "2027 상반기", "2027 하반기", "2028 하반기", "2030 하반기", "2034 하반기"]);
+    expect(bands[0]).toMatchObject({ isNow: true });
+    expect(bands[0].placements.map((p) => p.id)).toEqual(["scholarship", "loan"]);
+    expect(bands.find((b) => halfLabel(b.half) === "2028 하반기")?.milestones.map((m) => m.id)).toEqual(["master"]);
+  });
+});
+
+describe("diffBlueprint", () => {
+  it("같은 모습이면 빈 목록", () => {
+    expect(diffBlueprint(fromPath(), fromPath())).toEqual([]);
+  });
+
+  it("지운 배치는 remove", () => {
+    const prev = fromPath();
+    const next = { ...prev, placements: prev.placements.filter((p) => p.id !== "bk21") };
+    expect(diffBlueprint(prev, next)).toEqual([{ op: "remove", targetId: "bk21", before: { policyId: "bk21-four", from: "2028-10", to: "2030-09" }, after: null }]);
+  });
+});

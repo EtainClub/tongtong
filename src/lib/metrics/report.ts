@@ -39,7 +39,7 @@ export function buildReport(docs: DailyDoc[], cohortDocs: DailyDoc[], today: str
   return {
     from: dates[0] ?? today,
     to: dates.at(-1) ?? today,
-    firstJudgment: rate(n("trust_done"), n("card_open")),
+    firstJudgment: rate(n("trust_done"), n("card_open") - n("card_open_informed")),
     gameCorrect: rate(n("game_correct"), n("game_correct") + n("game_wrong")),
     sourceClick: rate(n("source_open"), n("reveal_reached")),
     finalJudgment: rate(n("final_done"), n("card_open")),
@@ -57,7 +57,7 @@ export function buildReport(docs: DailyDoc[], cohortDocs: DailyDoc[], today: str
         id,
         {
           open: n("card_open", id),
-          firstJudgment: rate(n("trust_done", id), n("card_open", id)),
+          firstJudgment: rate(n("trust_done", id), n("card_open", id) - n("card_open_informed", id)),
           finalJudgment: rate(n("final_done", id), n("card_open", id)),
           gameCorrect: rate(n("game_correct", id), n("game_correct", id) + n("game_wrong", id)),
           sourceClick: rate(n("source_open", id), n("reveal_reached", id)),

@@ -1,6 +1,7 @@
 import { FieldValue } from "firebase-admin/firestore";
 
 import { findCard } from "@/content/cards";
+import { findPolicy } from "@/content/policies";
 import { cardVersion } from "@/content/schema";
 import type { CorrectionInput } from "@/lib/correction";
 import { auth, db } from "@/lib/firebase/admin";
@@ -126,17 +127,19 @@ export async function deleteUserData(uid: string, scope: "judgments" | "account"
 
 /**
  * 정정 요청을 접수한다. 운영자만 본다 — 보안 규칙이 클라이언트 읽기·쓰기를 모두 막는다.
- * 어느 판의 카드를 보고 쓴 것인지 알도록 cardVersion을 함께 남긴다.
+ * 사실은 정책 항목에 있으므로 항목을 기준으로 받는다 — 카드가 없는 항목(정책 페이지)에서도 보낼 수 있다.
+ * 필드 이름 cardId·cardVersion은 그대로 둔다. 항목 id와 카드 id는 같고, 카드 버전이 곧 항목 버전이다.
  */
 export async function recordCorrection(uid: string, input: CorrectionInput) {
-  const card = requireCard(input.cardId);
-  if (input.claimId && ![...card.claims, ...card.counterpoints].some((claim) => claim.id === input.claimId)) {
+  const policy = findPolicy(input.cardId);
+  if (!policy) throw new Refusal(404, "unknown-card");
+  if (input.claimId && ![...policy.claims, ...policy.counterpoints].some((claim) => claim.id === input.claimId)) {
     throw new Refusal(400, "unknown-claim");
   }
   const ref = await db.collection("corrections").add({
     uid,
-    cardId: card.id,
-    cardVersion: cardVersion(card),
+    cardId: policy.id,
+    cardVersion: cardVersion(policy),
     claimId: input.claimId ?? null,
     body: input.body,
     contact: input.contact || null,

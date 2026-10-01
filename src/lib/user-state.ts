@@ -19,7 +19,7 @@ export const profileInput = z.object({
   audienceType: Audience,
   lifeStages: z.array(LifeStage).max(8),
   /** 관심 주제 (설계 6·21장). 피드 순서에만 쓴다. 생략하면 기존 값을 유지한다. */
-  interests: z.array(Category).max(6).optional(),
+  interests: z.array(Category).max(Category.options.length).optional(),
   /**
    * 정책 평가 저장 동의. 정책 평가는 "정치적 견해"로 볼 수 있어 별도 동의를 받는다
    * (검토 문서 3장 1번). 생략하면 기존 값을 유지한다. false는 철회 — 저장된 평가도 지운다.

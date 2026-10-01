@@ -6,7 +6,7 @@ import { z } from "zod";
  * 누가 했는지 남기지 않는다 — uid·IP·쿠키를 읽지 않고, 서버는 날짜별·카드별 합계만 올린다 (임통 lib/metrics와 같다).
  * 판단 값·이유·생활 상황은 싣지 않는다. 스키마가 strict라 다른 필드가 끼면 거절한다 (events.test).
  *
- *   첫 판단 도달률   trust_done / card_open
+ *   첫 판단 도달률   trust_done / (card_open − card_open_informed) — 정책 페이지에서 사실을 먼저 봐 훅 판단을 묻지 않은 열람은 뺀다
  *   게임 정답률      game_done(correct) / game_done(correct + wrong) — 정답이 없는 게임(자격 확인·예산 나누기·금액 맞히기)은 빼고
  *   원자료 클릭률    source_open / reveal_reached
  *   최종 판단 도달률 final_done / card_open
@@ -14,7 +14,7 @@ import { z } from "zod";
  *   재평가 응답률    revisit_done / revisit_open
  */
 
-export const CARD_EVENTS = ["card_open", "trust_done", "reveal_reached", "source_open", "final_done", "revisit_open", "revisit_done"] as const;
+export const CARD_EVENTS = ["card_open", "card_open_informed", "trust_done", "reveal_reached", "source_open", "final_done", "revisit_open", "revisit_done"] as const;
 export type CardEvent = (typeof CARD_EVENTS)[number];
 
 const cardId = z.string().min(1).max(100);

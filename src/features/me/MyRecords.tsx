@@ -9,6 +9,7 @@ import { CATEGORY_LABELS, formatDate, LIFE_STAGE_LABELS } from "@/features/label
 import { Notice } from "@/features/ui/Notice";
 import { apiFetch, describeError } from "@/lib/firebase/api";
 import { linkGoogle, signOutToAnonymous, useAuth } from "@/lib/firebase/auth";
+import { readBlueprintsForExport } from "@/lib/firebase/blueprint";
 import { useUserData } from "@/lib/firebase/user-data";
 import { summarize } from "@/lib/summary";
 
@@ -61,9 +62,19 @@ export function MyRecords() {
     void run(() => apiFetch(user, `/api/me?scope=${scope}`, { method: "DELETE" }), "지웠어요.");
   };
 
-  /** 판단 이력은 사용자 것이다 (검토 문서 9장). 이미 받아 둔 내 문서를 파일로 내려준다 — 서버를 거치지 않는다. */
-  const download = () => {
-    const exported = { exportedAt: new Date().toISOString(), profile: data.profile, cardStates: states };
+  /**
+   * 판단 이력은 사용자 것이다 (검토 문서 9장). 내 문서를 파일로 내려준다 — 서버(/api)를 거치지 않는다.
+   * 청사진은 앱 전체 구독에 없어서 이때 한 번 읽는다 (보관한 것과 REV 기록까지).
+   */
+  const download = async () => {
+    let blueprints: Awaited<ReturnType<typeof readBlueprintsForExport>>;
+    try {
+      blueprints = await readBlueprintsForExport(user.uid);
+    } catch (error) {
+      setMessage(describeError(error, "청사진을 읽지 못했어요. 다시 시도해 주세요."));
+      return;
+    }
+    const exported = { exportedAt: new Date().toISOString(), profile: data.profile, cardStates: states, blueprints };
     const url = URL.createObjectURL(new Blob([JSON.stringify(exported, null, 2)], { type: "application/json" }));
     const link = Object.assign(document.createElement("a"), { href: url, download: `tongtong-${exported.exportedAt.slice(0, 10)}.json` });
     link.click();
@@ -203,7 +214,7 @@ export function MyRecords() {
       <details className="mt-2 rounded-card border border-stone p-6 sm:p-8">
         <summary className="cursor-pointer text-[17px]">기록 내려받기</summary>
         <p className="mt-2 text-[15px] text-graphite">내 프로필과 카드별 판단 기록을 JSON 파일로 받아요.</p>
-        <button type="button" disabled={states.length === 0} onClick={download} className="mt-4 rounded-pill border border-ink px-5 py-2.5 disabled:opacity-40">
+        <button type="button" onClick={() => void download()} className="mt-4 rounded-pill border border-ink px-5 py-2.5 disabled:opacity-40">
           내려받기
         </button>
       </details>

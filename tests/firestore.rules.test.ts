@@ -18,6 +18,8 @@ let env: RulesTestEnvironment;
       const db = context.firestore();
       await setDoc(doc(db, "users/alice"), { audienceType: "young_adult", lifeStages: [], consent: { opinion: null } });
       await setDoc(doc(db, "users/alice/cardStates/youth-job-leap"), { cardId: "youth-job-leap", judgments: [] });
+      await setDoc(doc(db, "users/alice/blueprints/bp1"), { status: "active", rev: 1 });
+      await setDoc(doc(db, "users/alice/blueprints/bp1/versions/1"), { rev: 1, changes: [] });
     });
   });
 
@@ -42,6 +44,17 @@ let env: RulesTestEnvironment;
     const alice = env.authenticatedContext("alice").firestore();
     await assertFails(setDoc(doc(alice, "users/alice"), { consent: { opinion: "2026-09-29T00:00:00.000Z" } }));
     await assertFails(setDoc(doc(alice, "users/alice/cardStates/youth-job-leap"), { judgments: [{ axis: "opinion", value: 5 }] }));
+  });
+
+  test("청사진과 REV 기록은 자기 것만 읽고, 아무도 직접 쓰지 못한다", async () => {
+    const alice = env.authenticatedContext("alice").firestore();
+    const bob = env.authenticatedContext("bob").firestore();
+    await assertSucceeds(getDocs(collection(alice, "users/alice/blueprints")));
+    await assertSucceeds(getDoc(doc(alice, "users/alice/blueprints/bp1/versions/1")));
+    await assertFails(getDoc(doc(bob, "users/alice/blueprints/bp1")));
+    await assertFails(getDocs(collection(bob, "users/alice/blueprints/bp1/versions")));
+    await assertFails(setDoc(doc(alice, "users/alice/blueprints/bp1"), { status: "active", rev: 99 }));
+    await assertFails(setDoc(doc(alice, "users/alice/blueprints/bp1/versions/2"), { rev: 2, changes: [] }));
   });
 
   test("집계는 누구나 읽지만 아무도 쓰지 못한다", async () => {

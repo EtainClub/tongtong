@@ -5,6 +5,7 @@
 
 - 기획: [`docs/initial_concept.md`](docs/initial_concept.md), [`docs/initial_design.md`](docs/initial_design.md)
 - 검토와 로드맵: [`docs/design-review.md`](docs/design-review.md) — 판단 모델·데이터 모델·법적 게이트의 근거
+- 청년 청사진: [`docs/blueprint-design.md`](docs/blueprint-design.md) — 정책 항목·카드 두 층, 장기 플랜 설계
 
 ## 실행
 
@@ -27,8 +28,9 @@ pnpm test:emulator      # 보안 규칙 + 서버 쓰기 계층 (에뮬레이터�
 
 | 경로 | 무엇 |
 |---|---|
-| `src/content/cards/*.ts` | 카드 원본. 새 카드는 `raw.ts`에 등록 |
-| `src/content/schema.ts` | 카드 스키마와 불변식 (`pnpm validate`) |
+| `src/content/policies/*.ts` | 정책 항목 — 사실(claim·출처·신청 회차·개정 이력·청사진 계획 정보). 새 정책은 `raw.ts`에 등록 |
+| `src/content/cards/*.ts` | 카드 경험 — 같은 id의 항목 위에 얹는 훅·게임·판단. 새 카드는 `raw.ts`에 등록 |
+| `src/content/schema.ts` | 항목·카드 스키마와 불변식 (`pnpm validate`). 앱은 둘을 합친 `Card`를 쓴다(`resolveCard`) |
 | `src/lib/judgment.ts` | 판단 모델 — 축·단계·척도 |
 | `src/lib/user-state.ts` | 사용자 데이터 쓰기 규칙 (순수 함수) |
 | `src/lib/server/store.ts` | Firestore 트랜잭션 — 규칙을 적용하고 쓴다 |
@@ -82,9 +84,9 @@ firebase deploy --only firestore:rules,firestore:indexes --project tongtongs   #
 
 ## 카드 검수와 공개
 
-1. `pnpm review` → `docs/review-checklist.md`에 카드별로 대조할 claim과 원문 링크가 모인다.
-2. 원문과 대조한 claim에 `verified: true`, 카드에 `reviewedAt: "오늘"`.
-3. 모든 claim이 검증되고 비판·한계가 1개 이상이면 `publishStatus: "published"` — `pnpm validate`가 조건을 확인한다.
+1. `pnpm review` → `docs/review-checklist.md`에 정책 항목별로 대조할 claim과 원문 링크가 모인다. `계획 정보` 표시가 붙은 claim은 `planning` 값(나이·기간·회차)과도 맞춰 본다.
+2. 원문과 대조한 claim에 `verified: true`, 항목(`src/content/policies/<id>.ts`)에 `reviewedAt: "오늘"`.
+3. 모든 claim이 검증되면 항목을 `publishStatus: "published"`로. 카드는 항목이 공개이고 비판·한계가 1개 이상이면 공개할 수 있다 — `pnpm validate`가 조건을 확인한다.
 4. 배포. 비판·한계는 공공기관 자료나 공공기관 자료를 인용한 보도에서만 가져오고, 주장이면 `assertedBy`에 발언자를 적는다.
 
 ## 정정 요청 처리
@@ -93,7 +95,7 @@ firebase deploy --only firestore:rules,firestore:indexes --project tongtongs   #
 문서에는 `cardId`·`cardVersion`·`claimId`(선택)·`body`·`contact`(선택)·`status: "open"`이 있다. 접수 로그는 `correction-received`.
 
 1. Firebase 콘솔 → Firestore → `corrections`에서 `status == "open"`을 본다.
-2. 원문과 대조한다. 고치면 카드 파일을 고치고 `revisions`에 한 줄 남긴다 (`material: true`면 저장한 사용자에게 "새 정보"가 뜬다).
+2. 원문과 대조한다. 고치면 정책 항목 파일을 고치고 `revisions`에 한 줄 남긴다 (`material: true`면 저장한 사용자에게 "새 정보"가 뜬다).
 3. 처리한 문서는 `status`를 `"fixed"` 또는 `"declined"`로 바꾸고, 고치지 않았으면 이유를 `note`에 적는다.
 
 계정을 지우면 그 사용자의 정정 요청도 함께 지운다 (연락처가 있을 수 있다).

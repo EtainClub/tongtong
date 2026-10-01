@@ -1,8 +1,8 @@
 rules_version = '2';
 
 // 클라이언트는 자기 문서를 읽기만 한다. 모든 쓰기는 /api/*가 Admin SDK로 하고,
-// 쓰기 규칙은 src/lib/user-state.ts에 있다 (검토 문서 4.5). 규칙은 하위 컬렉션에
-// 상속되지 않으므로 cardStates를 따로 연다. 나머지는 전부 닫는다.
+// 쓰기 규칙은 src/lib/user-state.ts·src/lib/blueprint/apply.ts에 있다 (검토 문서 4.5). 규칙은 하위 컬렉션에
+// 상속되지 않으므로 cardStates·blueprints·versions를 따로 연다. 나머지는 전부 닫는다.
 service cloud.firestore {
   match /databases/{database}/documents {
     function isSelf(uid) { return request.auth != null && request.auth.uid == uid; }
@@ -14,6 +14,17 @@ service cloud.firestore {
       match /cardStates/{cardId} {
         allow read: if isSelf(uid);
         allow write: if false;
+      }
+
+      // 청사진과 REV 기록 (청사진 설계 6.1).
+      match /blueprints/{bpId} {
+        allow read: if isSelf(uid);
+        allow write: if false;
+
+        match /versions/{rev} {
+          allow read: if isSelf(uid);
+          allow write: if false;
+        }
       }
     }
 
