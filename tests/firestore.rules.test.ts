@@ -20,6 +20,8 @@ let env: RulesTestEnvironment;
       await setDoc(doc(db, "users/alice/cardStates/youth-job-leap"), { cardId: "youth-job-leap", judgments: [] });
       await setDoc(doc(db, "users/alice/blueprints/bp1"), { status: "active", rev: 1 });
       await setDoc(doc(db, "users/alice/blueprints/bp1/versions/1"), { rev: 1, changes: [] });
+      await setDoc(doc(db, "users/alice/notify/settings"), { updates: true, revisit: false, deadlines: false, sent: [] });
+      await setDoc(doc(db, "users/alice/devices/d1"), { token: "push-token" });
     });
   });
 
@@ -55,6 +57,23 @@ let env: RulesTestEnvironment;
     await assertFails(getDocs(collection(bob, "users/alice/blueprints/bp1/versions")));
     await assertFails(setDoc(doc(alice, "users/alice/blueprints/bp1"), { status: "active", rev: 99 }));
     await assertFails(setDoc(doc(alice, "users/alice/blueprints/bp1/versions/2"), { rev: 2, changes: [] }));
+  });
+
+  test("알림 설정은 자기 것만 읽고, 아무도 직접 켜지 못한다 — 동의는 /api로만 (M7-B)", async () => {
+    const alice = env.authenticatedContext("alice").firestore();
+    const bob = env.authenticatedContext("bob").firestore();
+    await assertSucceeds(getDoc(doc(alice, "users/alice/notify/settings")));
+    await assertFails(getDoc(doc(bob, "users/alice/notify/settings")));
+    // 남이 대신 켜거나, 본인이 /api를 거치지 않고 켜는 길이 없다.
+    await assertFails(setDoc(doc(bob, "users/alice/notify/settings"), { updates: true, revisit: true, deadlines: true }));
+    await assertFails(setDoc(doc(alice, "users/alice/notify/settings"), { updates: true, revisit: true, deadlines: true }));
+  });
+
+  test("기기 푸시 토큰은 본인도 읽지 못하고 아무도 쓰지 못한다", async () => {
+    const alice = env.authenticatedContext("alice").firestore();
+    await assertFails(getDoc(doc(alice, "users/alice/devices/d1")));
+    await assertFails(getDocs(collection(alice, "users/alice/devices")));
+    await assertFails(setDoc(doc(alice, "users/alice/devices/d2"), { token: "x" }));
   });
 
   test("집계는 누구나 읽지만 아무도 쓰지 못한다", async () => {

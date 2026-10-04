@@ -58,7 +58,7 @@ pnpm start              # 빌드 결과를 로컬에서 띄운다 (실제 프로
 | `src/lib/server/store.ts` | Firestore 트랜잭션 — 규칙을 적용하고 쓴다 |
 | `src/lib/ask/*` | AI 따져보기 — 카드 claim만으로 근거 구성, 주제 선별, 한도 |
 | `src/app/api/*` | 판단·저장·프로필·삭제·AI·정정 요청 API. 클라이언트는 Firestore에 직접 쓰지 않는다 |
-| `firestore.rules` | 자기 문서 읽기만 허용. `corrections`는 운영자만(콘솔) |
+| `firestore.rules` | 자기 문서 읽기만 허용. `corrections`는 운영자만(콘솔), 기기 푸시 토큰(`devices`)은 아무도 못 읽음 |
 | `src/app/opengraph-image.tsx` · `card/[id]/opengraph-image.tsx` | 공유 미리보기. 빌드 때 그린다 (서체 `assets/fonts`, 로고 `assets/og`). 판단 값은 싣지 않는다 |
 
 ## 환경
@@ -112,6 +112,15 @@ git push origin main
 - 집계: Cloud Scheduler `tongtong-rollup`(`asia-northeast3`, 매시 정각) → `POST /api/cron/rollup`.
   서비스 계정 `tongtong-scheduler`의 OIDC 토큰으로 부른다. Scheduler 서비스 에이전트에 이 계정의 `serviceAccountTokenCreator`가 있어야 한다 — 없으면 PERMISSION_DENIED(7)로 앱에 닿지도 않는다.
   바로 돌리기: `gcloud scheduler jobs run tongtong-rollup --project tongtongs --location asia-northeast3`
+- 알림(로드맵 M7-B): Cloud Scheduler `tongtong-notify`(매일 10시) → `POST /api/cron/notify`. 롤업과 같은 서비스 계정·audience를 쓴다. 처음 한 번 만든다:
+  ```bash
+  gcloud scheduler jobs create http tongtong-notify --project tongtongs --location asia-northeast3 \
+    --schedule "0 10 * * *" --time-zone Asia/Seoul --http-method POST \
+    --uri https://tongtong--tongtongs.asia-east1.hosted.app/api/cron/notify \
+    --oidc-service-account-email tongtong-scheduler@tongtongs.iam.gserviceaccount.com \
+    --oidc-token-audience https://tongtong--tongtongs.asia-east1.hosted.app/api/cron
+  ```
+  보내려면 프로젝트에서 Firebase Cloud Messaging API가 켜져 있어야 한다. 웹 푸시 공개 키(VAPID)는 `next.config.ts`. 바로 돌리기: `gcloud scheduler jobs run tongtong-notify --project tongtongs --location asia-northeast3` — 켠 사람·저장한 카드·보낼 것이 있을 때만 보내고 결과(`{ users, messages }`)는 응답과 로그에 남는다.
 - 지표: `pnpm metrics [일수=7]` — 운영 Firestore의 일별 합계와 청사진 합계를 터미널에 그린다(ADC). 에뮬레이터로 보려면 `FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 GOOGLE_CLOUD_PROJECT=demo-tongtong pnpm exec tsx scripts/metrics.ts`.
 
 도메인을 바꿀 때 함께 바꿀 것: `apphosting.yaml`의 `NEXT_PUBLIC_SITE_URL`(다른 주소는 `EXTRA_ALLOWED_ORIGINS`로), Firebase Auth 승인 도메인, reCAPTCHA 키 허용 도메인. 빠뜨리면 API가 403/401로 거절해 온보딩부터 막힌다. Scheduler는 기본 주소(hosted.app)로 부르므로 `CRON_AUDIENCE`는 그대로 둔다.

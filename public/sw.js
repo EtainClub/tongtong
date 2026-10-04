@@ -6,7 +6,8 @@
  * - /api, 다른 도메인(Firestore·Auth·App Check), GET 아닌 요청: 건드리지 않는다. 판단은 온라인일 때만.
  * - 앱이 "precache" 메시지로 저장한 카드 주소를 보내면, 그 화면과 화면이 쓰는 정적 파일을 미리 담는다.
  *
- * 알림(푸시)은 M7-B에서 더한다.
+ * - 알림(M7-B): FCM 웹 푸시를 받아 띄운다. Firebase SDK를 이 파일에 넣지 않는다 — 서버가 보낸
+ *   notification(제목·본문)과 link만 쓴다. 누르면 같은 출처의 그 주소를 연다(이미 열린 창이 있으면 그 창으로).
  */
 
 const PAGES = "tongtong-pages-v1";
@@ -83,6 +84,41 @@ async function precachePage(path) {
     }),
   );
 }
+
+self.addEventListener("push", (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch {
+    return;
+  }
+  const notification = payload.notification ?? {};
+  // 경로(path)를 먼저 — 이 앱이 어느 주소(정식·기본 주소)로 설치됐든 같은 출처에서 연다.
+  const link = payload.data?.path ?? payload.fcmOptions?.link ?? "/";
+  if (!notification.title) return;
+  event.waitUntil(
+    self.registration.showNotification(notification.title, {
+      body: notification.body ?? "",
+      icon: notification.icon ?? "/icons/icon-192.png",
+      lang: "ko",
+      data: { link },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  // 다른 출처로는 열지 않는다.
+  const target = new URL(event.notification.data?.link ?? "/", self.location.origin);
+  const url = target.origin === self.location.origin ? target.href : self.location.origin;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+      const open = windows.find((client) => new URL(client.url).origin === self.location.origin);
+      if (open) return open.navigate(url).then((client) => (client ?? open).focus());
+      return self.clients.openWindow(url);
+    }),
+  );
+});
 
 self.addEventListener("message", (event) => {
   const data = event.data;

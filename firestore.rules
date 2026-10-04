@@ -26,6 +26,17 @@ service cloud.firestore {
           allow write: if false;
         }
       }
+
+      // 알림 설정 (로드맵 M7-B). 본인이 읽어 화면에 켠 것을 보여 준다.
+      match /notify/{docId} {
+        allow read: if isSelf(uid);
+        allow write: if false;
+      }
+
+      // 기기 푸시 토큰. 화면에 필요 없어 본인도 읽지 못한다 — 서버(Admin SDK)만 쓴다.
+      match /devices/{deviceId} {
+        allow read, write: if false;
+      }
     }
 
     // 집계. 작은 수는 서버가 이미 걸러서 쓴다 (lib/stats MIN_PUBLIC). 쓰기는 롤업만.
