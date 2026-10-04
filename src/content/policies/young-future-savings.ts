@@ -129,6 +129,9 @@ export const youngFutureSavings = {
     recurrence: { kind: "rounds", note: "회차별 모집 — 2026년 2차", claimIds: ["age"] },
   },
 
+  // 잼통이 이 정책의 출시·신청 경과를 다룬다 (2026-10-04 페이지 확인). 통통은 복제하지 않고 보낸다.
+  links: { jamtong: { title: "청년미래적금 — 출시와 모집 경과", url: "https://jamtong.kr/achievement/youth-future-savings" } },
+
   revisions: [{ version: 1, date: "2026-09-29", material: true, summary: "첫 작성", claimIds: [] }],
   reviewedAt: "2026-09-30",
 } satisfies PolicyInput;

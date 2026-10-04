@@ -5,17 +5,20 @@ import { examFeeSupport } from "./exam-fee-support";
 import { highSchoolCredit } from "./high-school-credit";
 import { highSchoolFreeTuition } from "./high-school-free-tuition";
 import { incomeContingentLoan } from "./income-contingent-loan";
+import { nationalEmploymentSupport } from "./national-employment-support";
 import { nationalScholarship } from "./national-scholarship";
 import { outOfSchoolYouth } from "./out-of-school-youth";
 import { preStartupPackage } from "./pre-startup-package";
 import { stemResearchStipend } from "./stem-research-stipend";
 import { studentStartupTeams } from "./student-startup-teams";
 import { teenCultureNuri } from "./teen-culture-nuri";
+import { tomorrowLearningCard } from "./tomorrow-learning-card";
 import { workExperience } from "./work-experience";
 import { youngFutureSavings } from "./young-future-savings";
 import { youthChallenge } from "./youth-challenge";
 import { youthCulturePass } from "./youth-culture-pass";
 import { youthHousingDreamAccount } from "./youth-housing-dream-account";
+import { youthJeonseLoan } from "./youth-jeonse-loan";
 import { youthJobLeap } from "./youth-job-leap";
 import { youthMonthlyRent } from "./youth-monthly-rent";
 import { youthStartupAcademy } from "./youth-startup-academy";
@@ -52,4 +55,8 @@ export const RAW_POLICIES: unknown[] = [
   preStartupPackage,
   youthStartupAcademy,
   youthStartupTaxRelief,
+  // 카드 없는 항목 — 청사진 취업 경로 (청사진 설계 9.3, 2026-10-04 작성·원문 대조 뒤 공개).
+  tomorrowLearningCard,
+  nationalEmploymentSupport,
+  youthJeonseLoan,
 ];
