@@ -127,7 +127,7 @@ export function CardFlow({ card, user, data }: { card: Card; user: User; data: U
       <div className="mt-4 flex-1" onClickCapture={(event) => (event.target as Element).closest("[data-source-link]") && metrics.event("source_open")}>
         {/* 단계가 바뀔 때마다 새 내용이 떠오른다. */}
         <div key={step} className="step-enter">
-          {step === "shorts" && <Shorts hook={card.hook} lines={card.shorts} onDone={advance} morphName={hookTransitionName(card.id)} />}
+          {step === "shorts" && <Shorts hook={card.hook} lines={card.shorts} video={card.video} onDone={advance} morphName={hookTransitionName(card.id)} />}
 
           {step === "trust" && (
             <section>

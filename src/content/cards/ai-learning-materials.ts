@@ -19,6 +19,8 @@ export const aiLearningMaterials = {
     "지금은 '교과서'가 아닙니다.",
     "그럼 누가 쓸지를 정할까요?",
   ],
+  // docs/shorts/ai-learning-materials.md 대본으로 만든 영상 (2026-10-04 등록).
+  video: { youtubeId: "Kj3ulidRJmU" },
 
   flow: { trust: true, opinion: true },
 

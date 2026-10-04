@@ -64,6 +64,11 @@ export default function PrivacyPage() {
           <strong className="font-medium text-ink">AI에게 묻기.</strong> 질문은 답을 만들기 위해 Anthropic에 보내지고, 통통은 질문과 답을 저장하지 않아요.
           카드에 적힌 추천 질문의 답만 7일 동안 모아 두고 다시 써요 — 누가 물었는지는 남기지 않아요.
         </p>
+        <p className="mt-3 text-[15px] leading-relaxed text-graphite">
+          <strong className="font-medium text-ink">카드 영상.</strong> 영상이 있는 카드에서 &lsquo;영상 보기&rsquo;를 누를 때만 YouTube(Google)에
+          연결해요. 누르기 전에는 YouTube에 아무것도 보내지 않고, 누른 뒤에는 YouTube의 개인정보 처리방침이 적용돼요. 통통은 누가 영상을 봤는지
+          남기지 않아요.
+        </p>
       </Section>
 
       <Section title="2. 얼마나 두고, 어떻게 지우나요">

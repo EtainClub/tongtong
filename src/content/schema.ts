@@ -372,6 +372,11 @@ export const cardExperienceSchema = z.strictObject({
   hook: z.string(),
   /** 15초 숏츠 대본. 한 줄이 한 컷. */
   shorts: z.array(z.string()).min(1),
+  /**
+   * 대본으로 만든 유튜브 숏츠 (로드맵 M9-3, docs/shorts). 있으면 글자 씬 대신 보여 준다 — 글자 씬은 "글자로 보기"로 남는다.
+   * 올리기 전에 대본의 숫자·비판 장면과 대조하고, 자막이 영상에 들어 있어야 한다.
+   */
+  video: z.object({ youtubeId: z.string().regex(/^[A-Za-z0-9_-]{11}$/, "유튜브 영상 id 11자") }).optional(),
 
   /** 판단 단계를 카드마다 켜고 끈다. 탐색 카드는 둘 다 끈다 (검토 문서 2.7). */
   flow: z.object({ trust: z.boolean(), opinion: z.boolean() }),
@@ -434,6 +439,7 @@ export function resolveCard(policy: Policy, experience: CardExperience): Card {
     game: experience.game,
     reveal: experience.reveal,
     suggestedQuestions: experience.suggestedQuestions,
+    ...(experience.video !== undefined && { video: experience.video }),
     ...(experience.tone !== undefined && { tone: experience.tone }),
   };
 }

@@ -33,7 +33,7 @@
 
 ```
 카드 claim → 대본(이 폴더) → NotebookLM 영상 개요 → 숫자 대조 → 유튜브 숏츠
-          → 카드 파일에 video(youtubeId) 등록 (로드맵 M9-3, 아직 필드 없음)
+          → 카드 파일에 video: { youtubeId } 등록 (로드맵 M9-3)
 ```
 
 각 파일의 「NotebookLM 소스」를 통째로 붙여 넣고 「커스터마이즈 프롬프트」를 지시문 칸에 넣는다. 생성된 영상은 초안이다 — 대본의 숫자·순서·비판 장면이 그대로인지 대조한 뒤 올린다.
@@ -54,7 +54,7 @@
 | 국가기술자격 응시료 지원 | 청년 | [exam-fee-support.md](exam-fee-support.md) | **초안** — 비판·한계 없음 | 만들지 않음 |
 | 고교 무상교육 | 청소년 | [high-school-free-tuition.md](high-school-free-tuition.md) | 공개 | 없음 |
 | 고교학점제 | 청소년 | [high-school-credit.md](high-school-credit.md) | 공개 | 없음 |
-| AI 디지털교과서 | 청소년 | [ai-learning-materials.md](ai-learning-materials.md) | 공개 | 없음 |
+| AI 디지털교과서 | 청소년 | [ai-learning-materials.md](ai-learning-materials.md) | 공개 | [Kj3ulidRJmU](https://youtube.com/shorts/Kj3ulidRJmU) — 카드에 등록 |
 | 문화누리카드 | 청소년 | [teen-culture-nuri.md](teen-culture-nuri.md) | 공개 | 없음 |
 | 학교 밖 청소년 지원 | 청소년 | [out-of-school-youth.md](out-of-school-youth.md) | 공개 | 없음 |
 
