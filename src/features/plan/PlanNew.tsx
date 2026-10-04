@@ -15,8 +15,8 @@ import { PLAN_STAGE_LABELS } from "@/features/labels";
 import { PlanGate } from "@/features/plan/PlanGate";
 import { Timeline } from "@/features/plan/Timeline";
 import { BlueprintGoalKind, MAX_HORIZON_YEARS, type Blueprint } from "@/lib/blueprint/model";
-import { emptyBlueprint, materialize, pathHorizonYear } from "@/lib/blueprint/materialize";
-import { currentMonth } from "@/lib/blueprint/month";
+import { anchorRange, emptyBlueprint, materialize, pathHorizonYear } from "@/lib/blueprint/materialize";
+import { currentMonth, monthIndex } from "@/lib/blueprint/month";
 import { apiFetch } from "@/lib/firebase/api";
 import { describeBlueprintError } from "@/lib/firebase/blueprint";
 
@@ -72,23 +72,35 @@ function Steps({ user }: { user: User }) {
   const [stage, setStage] = useState<(typeof PlanStage.options)[number] | null>(null);
   const [age, setAge] = useState("");
   const [horizonYear, setHorizonYear] = useState(baseYear + 5);
+  /** 견본의 출발점(offset 0)이 되는 달 — 오늘이 아니라 사용자가 고른다 (청사진 설계 4.5, 검토 A-4). */
+  const [anchor, setAnchor] = useState(asOf);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const parsedAge = age.trim() === "" ? undefined : Number(age);
   const ageValid = parsedAge === undefined || (Number.isInteger(parsedAge) && parsedAge >= 14 && parsedAge <= 60);
   const goalTitle = choice?.kind === "path" ? choice.path.title : title.trim();
+  const range = choice?.kind === "path" ? anchorRange(choice.path, asOf) : null;
+  const anchorValid = !range || (/^\d{4}-\d{2}$/.test(anchor) && monthIndex(anchor) >= monthIndex(range.min) && monthIndex(anchor) <= monthIndex(range.max));
+  /** 견본은 마지막 칸이 든 해보다 목표 연도를 이르게 잡을 수 없다. */
+  const minYear = choice?.kind === "path" && anchorValid ? pathHorizonYear(choice.path, anchor) : baseYear;
 
   const pick = (next: Choice) => {
     setChoice(next);
+    setAnchor(asOf);
     if (next.kind === "path") setHorizonYear(pathHorizonYear(next.path, asOf));
+  };
+
+  const moveAnchor = (value: string) => {
+    setAnchor(value);
+    if (choice?.kind === "path" && /^\d{4}-\d{2}$/.test(value)) setHorizonYear((year) => Math.max(year, pathHorizonYear(choice.path, value)));
   };
 
   const draft = (): Blueprint | null => {
     if (!choice || !stage) return null;
     const baseline = { asOf, stage, ...(parsedAge !== undefined && { age: parsedAge }) };
     return choice.kind === "path"
-      ? materialize(choice.path, policyMap, { id: "draft", baseline, now, horizonYear })
+      ? materialize(choice.path, policyMap, { id: "draft", baseline, now, anchor, horizonYear })
       : emptyBlueprint({ id: "draft", baseline, now, goal: { kind, title: goalTitle, horizonYear } });
   };
 
@@ -100,7 +112,7 @@ function Steps({ user }: { user: User }) {
       await apiFetch(user, "/api/blueprint", {
         method: "POST",
         body: {
-          ...(choice.kind === "path" && { pathId: choice.path.id }),
+          ...(choice.kind === "path" && { pathId: choice.path.id, anchor }),
           kind: choice.kind === "path" ? choice.path.goalKind : kind,
           title: goalTitle,
           horizonYear,
@@ -186,10 +198,24 @@ function Steps({ user }: { user: User }) {
                 </Chip>
               ))}
             </div>
-            {choice?.kind === "path" && stage && stage !== choice.path.startStage && (
-              <p className="mt-3 text-[14px] text-graphite">
-                이 견본은 {PLAN_STAGE_LABELS[choice.path.startStage]}에서 시작한다고 가정해요. 만든 뒤 이정표와 정책 시점을 옮길 수 있어요.
-              </p>
+            {choice?.kind === "path" && range && (
+              <label className="mt-8 flex flex-col gap-1.5 text-[14px]">
+                <span>이 견본의 출발점({choice.path.milestones.find((m) => m.offsetMonths === 0)?.label ?? PLAN_STAGE_LABELS[choice.path.startStage]})은 언제인가요?</span>
+                <input
+                  type="month"
+                  value={anchor}
+                  min={range.min}
+                  max={range.max}
+                  onChange={(e) => moveAnchor(e.target.value)}
+                  className="w-44 rounded-input border border-stone bg-eggshell px-3 py-2.5 text-[16px] focus:border-ink"
+                />
+                <span className="text-[13px] text-smoke">이미 지났으면 그 달을, 아직이면 그때가 될 달을 골라요. 견본의 모든 이정표와 정책이 이 달부터 놓여요.</span>
+                {!anchorValid && (
+                  <span className="text-[13px] text-ink">
+                    {range.min.replace("-", ".")}부터 {range.max.replace("-", ".")} 사이로 골라 주세요 — 목표 연도는 10년 안이어야 해요.
+                  </span>
+                )}
+              </label>
             )}
 
             <label className="mt-8 flex flex-col gap-1.5 text-[14px]">
@@ -212,7 +238,7 @@ function Steps({ user }: { user: User }) {
               <select value={horizonYear} onChange={(e) => setHorizonYear(Number(e.target.value))} className="w-32 rounded-input border border-stone bg-eggshell px-3 py-2.5 text-[16px] focus:border-ink">
                 {/* 견본은 마지막 칸이 든 해보다 이르게 잡을 수 없다 — 칸이 목표 연도 밖으로 나간다. */}
                 {Array.from({ length: MAX_HORIZON_YEARS + 1 }, (_, i) => baseYear + i)
-                  .filter((year) => choice?.kind !== "path" || year >= pathHorizonYear(choice.path, asOf))
+                  .filter((year) => year >= minYear)
                   .map((year) => (
                     <option key={year} value={year}>
                       {year}년
@@ -225,7 +251,7 @@ function Steps({ user }: { user: User }) {
               <button type="button" onClick={() => setStep(1)} className="rounded-pill border border-stone px-6 py-4">
                 이전
               </button>
-              <button type="button" onClick={() => setStep(3)} disabled={!stage || !ageValid} className={primaryButton}>
+              <button type="button" onClick={() => setStep(3)} disabled={!stage || !ageValid || !anchorValid} className={primaryButton}>
                 초안 보기
               </button>
             </div>

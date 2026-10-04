@@ -109,7 +109,7 @@ export function ConsentPanel({ busy, onAgree, onDecline }: { busy: boolean; onAg
       <ul className="mt-4 flex list-disc flex-col gap-2 pl-5 text-[15px] text-graphite">
         <li>정책에 대한 평가는 정치적 견해로 볼 수 있어, 저장하려면 따로 동의를 받아요.</li>
         <li>저장하면 몇 달 뒤 같은 정책을 다시 볼 때 지금 생각과 나란히 볼 수 있어요.</li>
-        <li>내 평가는 나만 볼 수 있어요. 성향 점수로 합치거나 추천에 쓰지 않아요.</li>
+        <li>내 평가는 다른 사람에게 보이지 않아요. 성향 점수로 합치거나 추천에 쓰지 않아요.</li>
         <li>누가 답했는지 알 수 없는 통통 사용자 전체 분포에는 들어가요. 응답이 30명 넘게 모인 카드만 보여줘요.</li>
         <li>언제든 &lsquo;내 기록&rsquo;에서 철회할 수 있고, 철회하면 저장된 평가도 지워요.</li>
         <li>

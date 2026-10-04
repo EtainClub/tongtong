@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { YearMonth } from "../lib/blueprint/month";
 import { endOf, startOf } from "../lib/policy-state";
 
 /*
@@ -279,6 +280,13 @@ export const planningSchema = z.object({
   after: z.array(linkedPolicy).default([]),
   /** 대상이 되는 학적·단계. lifeStages보다 좁은 조건이 있을 때만. */
   stages: z.array(PlanStage).default([]),
+  /**
+   * 사업이 끝나기로 된 달 (청사진 설계 4.4, 검토 A-6). history의 `ended`는 끝난 뒤에만 적을 수 있어서
+   * 미래의 종료는 여기에 둔다. 이 달 뒤에 시작하는 배치는 미정이다(lib/blueprint/certainty).
+   */
+  endsAt: z.object({ month: YearMonth, claimIds }).optional(),
+  /** 갚아야 하는 돈 — 대출 (검토 A-7). 화면이 "갚아야 해요"를 붙여 혜택과 같은 모양으로 보이지 않게 한다. */
+  repayable: z.object({ claimIds }).optional(),
 });
 export type Planning = z.infer<typeof planningSchema>;
 
@@ -494,6 +502,8 @@ function validatePlanning(policyId: string, planning: Planning, needClaim: (wher
   }
   if (planning.durationMonths) needClaim("planning.durationMonths", planning.durationMonths.claimIds);
   if (planning.recurrence) needClaim("planning.recurrence", planning.recurrence.claimIds);
+  if (planning.endsAt) needClaim("planning.endsAt", planning.endsAt.claimIds);
+  if (planning.repayable) needClaim("planning.repayable", planning.repayable.claimIds);
   for (const link of [...planning.exclusiveWith, ...planning.after]) {
     if (link.policyId === policyId) errors.push(`planning → 자기 자신(${policyId})을 가리킨다`);
     needClaim(`planning ${link.policyId}`, link.claimIds);

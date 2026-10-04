@@ -36,6 +36,8 @@ function planningClaimIds(planning: Planning | undefined): Set<string> {
     ...(planning.age?.claimIds ?? []),
     ...(planning.durationMonths?.claimIds ?? []),
     ...(planning.recurrence?.claimIds ?? []),
+    ...(planning.endsAt?.claimIds ?? []),
+    ...(planning.repayable?.claimIds ?? []),
     ...[...planning.exclusiveWith, ...planning.after].flatMap((link) => link.claimIds),
   ]);
 }

@@ -7,11 +7,12 @@ import { Refusal } from "@/lib/guard/refusal";
 import {
   applyChanges,
   BlueprintRejection,
+  checkAnchor,
   checkHorizon,
   type BlueprintCreateInput,
   type BlueprintPatchInput,
 } from "@/lib/blueprint/apply";
-import { emptyBlueprint, materialize } from "@/lib/blueprint/materialize";
+import { anchorRange, emptyBlueprint, materialize, pathHorizonYear } from "@/lib/blueprint/materialize";
 import { MAX_ACTIVE_BLUEPRINTS, type Blueprint, type Version } from "@/lib/blueprint/model";
 import { currentMonth } from "@/lib/blueprint/month";
 import type { Profile } from "@/lib/user-state";
@@ -72,7 +73,11 @@ export async function createBlueprint(uid: string, input: BlueprintCreateInput, 
       if (input.pathId) {
         const path = findPath(input.pathId);
         if (!path) throw new BlueprintRejection("unknown-path");
-        blueprint = materialize(path, visiblePolicies(), { id, baseline, now, title: input.title, horizonYear: input.horizonYear });
+        // 견본의 출발 달은 사용자가 고른다 (검토 A-4). 목표 연도는 견본의 끝이 든 해보다 이를 수 없다.
+        const anchor = input.anchor ?? baseline.asOf;
+        checkAnchor(anchorRange(path, baseline.asOf), anchor);
+        if (input.horizonYear !== undefined && input.horizonYear < pathHorizonYear(path, anchor)) throw new BlueprintRejection("invalid-horizon");
+        blueprint = materialize(path, visiblePolicies(), { id, baseline, now, anchor, title: input.title, horizonYear: input.horizonYear });
       } else {
         const horizonYear = input.horizonYear ?? Number(baseline.asOf.slice(0, 4)) + 5;
         blueprint = emptyBlueprint({ id, baseline, now, goal: { kind: input.kind, title: input.title, horizonYear } });
@@ -108,7 +113,7 @@ export async function updateBlueprint(uid: string, input: BlueprintPatchInput, n
   );
 }
 
-/** 보관 — 지우지 않고 내린다. 새 청사진을 만들 수 있게 된다. 기록은 계정을 지울 때 함께 지워진다. */
+/** 보관 — 지우지 않고 내린다. 새 청사진을 만들 수 있게 된다. 영구히 지우려면 내 기록의 "청사진 지우기"(deleteUserData scope=blueprints). */
 export async function archiveBlueprint(uid: string, id: string, now = new Date()) {
   await db.runTransaction(async (tx) => {
     const ref = blueprints(uid).doc(id);

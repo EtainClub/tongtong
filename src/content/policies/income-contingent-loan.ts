@@ -73,10 +73,11 @@ export const incomeContingentLoan = {
     ],
   },
 
-  // 청사진 계획 정보 (청사진 설계 4.4).
+  // 청사진 계획 정보 (청사진 설계 4.4). 빌리는 돈이다(tuition) — 화면이 "갚아야 해요"를 붙인다.
   planning: {
     roles: ["funding"],
     stages: ["undergrad", "grad_master", "grad_phd"],
+    repayable: { claimIds: ["tuition"] },
   },
 
   revisions: [{ version: 1, date: "2026-10-01", material: true, summary: "첫 작성", claimIds: [] }],

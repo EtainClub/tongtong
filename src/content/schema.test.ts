@@ -145,6 +145,12 @@ describe("validatePolicy", () => {
     expect(errors).toContainEqual(expect.stringContaining('planning.age → 없는 claim "ghost"'));
   });
 
+  it("사업 종료·대출 표시도 있는 claim을 근거로 삼는다", () => {
+    const errors = brokenPolicy((p) => (p.planning = planning({ endsAt: { month: "2027-08", claimIds: ["ghost"] }, repayable: { claimIds: ["ghost2"] } })));
+    expect(errors).toContainEqual(expect.stringContaining('planning.endsAt → 없는 claim "ghost"'));
+    expect(errors).toContainEqual(expect.stringContaining('planning.repayable → 없는 claim "ghost2"'));
+  });
+
   it("planning 나이 범위가 거꾸로면 오류", () => {
     const claimIds = [ALL_POLICIES[0].claims[0].id];
     expect(brokenPolicy((p) => (p.planning = planning({ age: { min: 35, max: 19, claimIds } })))).toContainEqual(expect.stringContaining("min이 max보다"));

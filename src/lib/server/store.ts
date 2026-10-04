@@ -109,10 +109,11 @@ async function deleteOpinions(uid: string) {
 }
 
 /**
- * 내 기록 삭제 (검토 문서 9장). judgments는 판단 기록만, account는 계정까지.
+ * 내 기록 삭제 (검토 문서 9장). judgments는 판단 기록만, blueprints는 청사진만(보관한 것과 REV 기록까지, 청사진 검토 A-10),
+ * account는 계정까지.
  * 집계는 아직 없으므로(M3) 남는 흔적이 없다. 롤업이 생기면 여기서 재계산 큐에 넣는다 — 임통 account/delete.
  */
-export async function deleteUserData(uid: string, scope: "judgments" | "account") {
+export async function deleteUserData(uid: string, scope: "judgments" | "blueprints" | "account") {
   if (scope === "account") {
     await db.recursiveDelete(userRef(uid));
     // 정정 요청에는 연락처가 있을 수 있다 — 계정과 함께 지운다.
@@ -121,7 +122,7 @@ export async function deleteUserData(uid: string, scope: "judgments" | "account"
     await auth.deleteUser(uid);
     return { scope };
   }
-  await db.recursiveDelete(userRef(uid).collection("cardStates"));
+  await db.recursiveDelete(userRef(uid).collection(scope === "blueprints" ? "blueprints" : "cardStates"));
   return { scope };
 }
 

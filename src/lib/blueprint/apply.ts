@@ -36,7 +36,8 @@ export const blueprintOp = z.discriminatedUnion("op", [
   /** 빈 문자열은 메모를 지운다. */
   z.object({ op: z.literal("setNote"), id, note: z.string().trim().max(200) }),
   z.object({ op: z.literal("addMilestone"), label, at: YearMonth, stage: PlanStage.optional() }),
-  z.object({ op: z.literal("editMilestone"), id, label: label.optional(), at: YearMonth.optional() }),
+  /** stage: null은 단계를 지운다(이 이정표에서 단계가 바뀌지 않음), 생략하면 그대로 (검토 A-14). */
+  z.object({ op: z.literal("editMilestone"), id, label: label.optional(), at: YearMonth.optional(), stage: PlanStage.nullable().optional() }),
   /** 이 이정표에 딸린 배치는 남고, 이정표 연결만 끊긴다. */
   z.object({ op: z.literal("removeMilestone"), id }),
   z.object({ op: z.literal("setGoal"), title: z.string().trim().min(1).max(60).optional(), horizonYear: z.number().int().optional() }),
@@ -52,9 +53,10 @@ export const blueprintPatchInput = z.object({
 });
 export type BlueprintPatchInput = z.infer<typeof blueprintPatchInput>;
 
-/** 만들기. 기준 달(asOf)은 서버가 정한다 — 오늘. */
+/** 만들기. 기준 달(asOf)은 서버가 정한다 — 오늘. anchor는 견본의 출발점이 되는 달(없으면 오늘, 견본일 때만). */
 export const blueprintCreateInput = z.object({
   pathId: z.string().optional(),
+  anchor: YearMonth.optional(),
   kind: BlueprintGoalKind,
   title: z.string().trim().min(1).max(60),
   horizonYear: z.number().int().optional(),
@@ -92,6 +94,17 @@ export type ApplyContext = {
 export function checkHorizon(asOf: string, horizonYear: number) {
   const base = Number(asOf.slice(0, 4));
   if (horizonYear < base || horizonYear > base + MAX_HORIZON_YEARS) throw new BlueprintRejection("invalid-horizon");
+}
+
+/** 놓인 배치(끝 달)와 이정표 가운데 가장 늦은 해. 아무것도 없으면 기준 연도. */
+export function lastPlacedYear(blueprint: Pick<Blueprint, "baseline" | "placements" | "milestones">): number {
+  const months = [...blueprint.placements.map((p) => p.to ?? p.from), ...blueprint.milestones.map((m) => m.at)];
+  return Math.max(Number(blueprint.baseline.asOf.slice(0, 4)), ...months.map((ym) => Math.floor(monthIndex(ym) / 12)));
+}
+
+/** 견본의 출발 달이 고를 수 있는 범위 안인가 (검토 A-4, materialize의 anchorRange). */
+export function checkAnchor(range: { min: string; max: string }, anchor: string) {
+  if (monthIndex(anchor) < monthIndex(range.min) || monthIndex(anchor) > monthIndex(range.max)) throw new BlueprintRejection("invalid-range");
 }
 
 /** 배치·이정표 기간 — 기준 10년 전부터 목표 연도 끝까지. 끝은 시작보다 이를 수 없다. */
@@ -169,7 +182,11 @@ function applyOne(blueprint: Blueprint, op: BlueprintOp, ctx: ApplyContext): Blu
       if (op.at) checkRange(blueprint, op.at);
       return {
         ...blueprint,
-        milestones: blueprint.milestones.map((m) => (m.id === op.id ? { ...m, ...(op.label && { label: op.label }), ...(op.at && { at: op.at }) } : m)),
+        milestones: blueprint.milestones.map((m) =>
+          m.id === op.id
+            ? { ...m, ...(op.label && { label: op.label }), ...(op.at && { at: op.at }), ...(op.stage !== undefined && { stage: op.stage ?? undefined }) }
+            : m,
+        ),
       };
     case "removeMilestone":
       requireMilestone(blueprint, op.id);
@@ -179,7 +196,11 @@ function applyOne(blueprint: Blueprint, op: BlueprintOp, ctx: ApplyContext): Blu
         placements: blueprint.placements.map((p) => (p.milestoneId === op.id ? { ...p, milestoneId: undefined } : p)),
       };
     case "setGoal":
-      if (op.horizonYear !== undefined) checkHorizon(blueprint.baseline.asOf, op.horizonYear);
+      if (op.horizonYear !== undefined) {
+        checkHorizon(blueprint.baseline.asOf, op.horizonYear);
+        // 놓인 배치·이정표보다 이른 해로 줄이면 그것들이 목표 연도 밖으로 나간다 (검토 A-16). 화면만이 아니라 여기서 막는다.
+        if (op.horizonYear < lastPlacedYear(blueprint)) throw new BlueprintRejection("invalid-horizon");
+      }
       return { ...blueprint, goal: { ...blueprint.goal, ...(op.title && { title: op.title }), ...(op.horizonYear !== undefined && { horizonYear: op.horizonYear }) } };
   }
 }

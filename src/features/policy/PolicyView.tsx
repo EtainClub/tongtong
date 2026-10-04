@@ -121,6 +121,8 @@ function PlanningFacts({ planning }: { planning: Planning }) {
     ...(planning.age ? [["나이", ageText(planning.age)] as [string, string]] : []),
     ...(planning.durationMonths ? [["지원 기간", `${planning.durationMonths.value}개월`] as [string, string]] : []),
     ["다시 열리나", planning.recurrence ? RECURRENCE_LABELS[planning.recurrence.kind] : "공고로 확인해요"],
+    ...(planning.endsAt ? [["사업 기간", `${planning.endsAt.month.replace("-", ".")}까지로 되어 있어요`] as [string, string]] : []),
+    ...(planning.repayable ? [["갚아야 하나", "네 — 빌리는 돈이에요"] as [string, string]] : []),
   ];
   return (
     <section aria-labelledby="planning-title" className="mt-10">

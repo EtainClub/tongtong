@@ -91,9 +91,11 @@ export const stemResearchStipend = {
   },
 
   // 청사진 계획 정보 (청사진 설계 4.4). 대학 단위 사업이라 개인 신청 회차가 없다.
+  // 사업 기간은 "2033년까지"(period) — 달이 적혀 있지 않아 그해 끝(12월)으로 둔다.
   planning: {
     roles: ["funding"],
     stages: ["grad_master", "grad_phd"],
+    endsAt: { month: "2033-12", claimIds: ["period"] },
   },
 
   revisions: [{ version: 1, date: "2026-10-01", material: true, summary: "첫 작성", claimIds: [] }],

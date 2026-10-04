@@ -87,6 +87,30 @@ const enabled = Boolean(process.env.FIRESTORE_EMULATOR_HOST && process.env.FIREB
     });
   });
 
+  test("견본의 출발 달 — 고른 달부터 놓이고, 범위 밖이나 견본 끝보다 이른 목표 연도는 거절 (검토 A-4)", async () => {
+    const now = new Date("2026-10-01T03:00:00Z");
+    const created = await store.createBlueprint(uid, { ...fromPath, anchor: "2028-03" }, now);
+    expect(created.milestones.find((m) => m.id === "junior")?.at).toBe("2028-03");
+    expect(created.baseline.asOf).toBe("2026-10");
+    await store.archiveBlueprint(uid, created.id);
+    await expect(store.createBlueprint(uid, { ...fromPath, anchor: "2030-03" }, now)).rejects.toMatchObject({ status: 400, reason: "invalid-range" });
+    await expect(store.createBlueprint(uid, { ...fromPath, anchor: "2028-03", horizonYear: 2035 }, now)).rejects.toMatchObject({ status: 400, reason: "invalid-horizon" });
+  });
+
+  test("청사진만 지우면 보관한 것과 REV 기록까지 사라지고 판단 기록은 남는다 (검토 A-10)", async () => {
+    const first = await store.createBlueprint(uid, fromPath);
+    await store.archiveBlueprint(uid, first.id);
+    const second = await store.createBlueprint(uid, { kind: "other", title: "두 번째", stage: "undergrad" });
+    await db.doc(`users/${uid}/cardStates/youth-job-leap`).set({ cardId: "youth-job-leap", judgments: [] });
+    const { deleteUserData } = await import("@/lib/server/store");
+    await deleteUserData(uid, "blueprints");
+    expect((await db.collection(`users/${uid}/blueprints`).get()).size).toBe(0);
+    expect(await versions(uid, first.id)).toEqual([]);
+    expect(await versions(uid, second.id)).toEqual([]);
+    expect((await db.doc(`users/${uid}/cardStates/youth-job-leap`).get()).exists).toBe(true);
+    expect((await db.doc(`users/${uid}`).get()).exists).toBe(true);
+  });
+
   test("계정을 지우면 청사진과 기록도 지워진다", async () => {
     const created = await store.createBlueprint(uid, fromPath);
     const { deleteUserData } = await import("@/lib/server/store");

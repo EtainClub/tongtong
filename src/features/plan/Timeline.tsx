@@ -66,6 +66,24 @@ export function Timeline({
               </li>
             ))}
           </ul>
+          {/* 앞에서 시작해 이 반기에도 이어지는 것 — "그때 무엇으로 사나"를 띠마다 보이게 (검토 A-8). */}
+          {band.continuing.length > 0 && (
+            <p className="mt-2 text-[13px] text-smoke">
+              계속:{" "}
+              {band.continuing.map((placement, i) => (
+                <span key={placement.id}>
+                  {i > 0 && " · "}
+                  {onPlacement ? (
+                    <button type="button" onClick={() => onPlacement(placement)} className="underline-offset-4 hover:underline">
+                      {policyName(placement.policyId)}
+                    </button>
+                  ) : (
+                    policyName(placement.policyId)
+                  )}
+                </span>
+              ))}
+            </p>
+          )}
         </li>
       ))}
     </ol>
@@ -81,6 +99,8 @@ function PlacementRow({ placement, onClick }: { placement: Placement; onClick?: 
       <span className="min-w-0">
         <span className="block text-[16px]">
           {policyName(placement.policyId)}
+          {/* 빚을 혜택과 같은 모양으로 두지 않는다 — 색이 아니라 글자로 (검토 A-7). */}
+          {policy?.planning?.repayable && <span className="ml-1.5 text-[13px] text-graphite">갚아야 해요</span>}
           {hasCard && <span className="ml-1.5 text-[12px] text-graphite" aria-label="따져볼 카드 있음">◆</span>}
         </span>
         <span className="mt-0.5 block text-[13px] text-smoke">

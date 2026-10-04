@@ -56,8 +56,12 @@ export function MyRecords() {
     );
   };
 
-  const remove = (scope: "judgments" | "account") => {
-    const question = scope === "account" ? "계정과 모든 기록을 지울까요? 되돌릴 수 없어요." : "판단 기록과 저장한 카드를 모두 지울까요? 되돌릴 수 없어요.";
+  const remove = (scope: "judgments" | "blueprints" | "account") => {
+    const question = {
+      account: "계정과 모든 기록을 지울까요? 되돌릴 수 없어요.",
+      judgments: "판단 기록과 저장한 카드를 모두 지울까요? 되돌릴 수 없어요.",
+      blueprints: "지금 청사진과 보관한 청사진, 고친 기록까지 모두 지울까요? 되돌릴 수 없어요.",
+    }[scope];
     if (!window.confirm(question)) return;
     void run(() => apiFetch(user, `/api/me?scope=${scope}`, { method: "DELETE" }), "지웠어요.");
   };
@@ -221,10 +225,13 @@ export function MyRecords() {
 
       <details className="mt-2 rounded-card border border-stone p-6 sm:p-8">
         <summary className="cursor-pointer text-[17px]">기록 지우기</summary>
-        <p className="mt-2 text-[15px] text-graphite">판단 기록만 지우거나, 계정까지 지울 수 있어요. 되돌릴 수 없어요.</p>
+        <p className="mt-2 text-[15px] text-graphite">판단 기록이나 청사진만 지우거나, 계정까지 지울 수 있어요. 되돌릴 수 없어요.</p>
         <div className="mt-4 flex flex-wrap gap-2">
           <button type="button" disabled={busy} onClick={() => remove("judgments")} className="rounded-pill border border-ink px-5 py-2.5 disabled:opacity-40">
             판단 기록 지우기
+          </button>
+          <button type="button" disabled={busy} onClick={() => remove("blueprints")} className="rounded-pill border border-ink px-5 py-2.5 disabled:opacity-40">
+            청사진 지우기
           </button>
           <button type="button" disabled={busy} onClick={() => remove("account")} className="rounded-pill border border-ink px-5 py-2.5 disabled:opacity-40">
             계정까지 지우기

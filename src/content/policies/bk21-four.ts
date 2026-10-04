@@ -53,10 +53,11 @@ export const bk21Four = {
 
   policy: { history: [], applications: [] },
 
-  // 청사진 계획 정보 (청사진 설계 4.4). 교육연구단 단위라 개인 신청 회차가 없다.
+  // 청사진 계획 정보 (청사진 설계 4.4). 교육연구단 단위라 개인 신청 회차가 없다. 4단계는 2027년 8월까지(period).
   planning: {
     roles: ["funding"],
     stages: ["grad_master", "grad_phd"],
+    endsAt: { month: "2027-08", claimIds: ["period"] },
   },
 
   revisions: [{ version: 1, date: "2026-10-01", material: true, summary: "첫 작성", claimIds: [] }],

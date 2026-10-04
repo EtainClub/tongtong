@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { ALL_PATHS } from "@/content/paths";
 import { ALL_POLICIES } from "@/content/policies";
-import { applyChanges, BlueprintRejection, type BlueprintOp } from "@/lib/blueprint/apply";
-import { certaintyOf } from "@/lib/blueprint/certainty";
+import { applyChanges, BlueprintRejection, lastPlacedYear, type BlueprintOp } from "@/lib/blueprint/apply";
+import { certaintyOf, endsBefore } from "@/lib/blueprint/certainty";
 import { diffBlueprint } from "@/lib/blueprint/diff";
-import { emptyBlueprint, materialize, pathHorizonYear } from "@/lib/blueprint/materialize";
+import { anchorRange, emptyBlueprint, materialize, pathHorizonYear } from "@/lib/blueprint/materialize";
 import { blueprintSchema, type Blueprint } from "@/lib/blueprint/model";
 import { addMonths, halfIndex, halfLabel, monthOf, overlaps } from "@/lib/blueprint/month";
 import { timelineBands } from "@/lib/blueprint/timeline";
@@ -61,8 +61,20 @@ describe("materialize", () => {
     expect(blueprint.goal).toMatchObject({ kind: "degree", pathId: "phd-stem", horizonYear: 2034 });
   });
 
-  it("목표 연도는 10년을 넘지 않는다", () => {
-    expect(pathHorizonYear(phd, "2026-10")).toBeLessThanOrEqual(2036);
+  it("출발 달을 고르면 견본의 모든 시점이 그 달부터 놓인다 (검토 A-4)", () => {
+    const anchored = materialize(phd, policies, { id: "bp1", baseline, now, anchor: "2028-03" });
+    expect(anchored.milestones.find((m) => m.id === "junior")?.at).toBe("2028-03");
+    expect(anchored.milestones.find((m) => m.id === "master")?.at).toBe("2030-03");
+    expect(anchored.baseline.asOf).toBe("2026-10"); // 기준 달은 그대로 오늘
+    expect(anchored.goal.horizonYear).toBe(pathHorizonYear(phd, "2028-03"));
+    expect(pathHorizonYear(phd, "2028-03")).toBe(2036);
+  });
+
+  it("출발 달 범위 — 4년 전부터, 견본 끝이 기준 + 10년을 넘지 않는 달까지", () => {
+    const range = anchorRange(phd, "2026-10");
+    expect(range.min).toBe("2022-10");
+    expect(pathHorizonYear(phd, range.max)).toBe(2036);
+    expect(pathHorizonYear(phd, addMonths(range.max, 1))).toBe(2037);
   });
 
   it("보이지 않는 항목을 가리키는 칸은 건너뛴다", () => {
@@ -93,6 +105,15 @@ describe("certaintyOf", () => {
   it("근거가 없으면 미정", () => {
     expect(certaintyOf({ from: "2028-10" }, stipend)).toBe("undetermined");
     expect(certaintyOf({ from: "2028-10" }, undefined)).toBe("undetermined");
+  });
+
+  it("끝나기로 된 사업은 그 뒤에 시작하면 미정 (검토 A-6)", () => {
+    const bk21 = policies.get("bk21-four")!; // endsAt 2027-08
+    const withRecurrence = { ...bk21, planning: { ...bk21.planning!, recurrence: { kind: "annual" as const, claimIds: ["period"] } } };
+    expect(certaintyOf({ from: "2027-03" }, withRecurrence)).toBe("expected");
+    expect(certaintyOf({ from: "2027-09" }, withRecurrence)).toBe("undetermined");
+    expect(endsBefore({ from: "2027-09" }, bk21)).toBe(true);
+    expect(endsBefore({ from: "2027-08" }, bk21)).toBe(false);
   });
 
   it("그 전에 끝나는 정책은 미정", () => {
@@ -164,6 +185,22 @@ describe("applyChanges", () => {
     expect(changes).toEqual([{ op: "note", targetId: "rent", before: { note: "학교 근처" }, after: { note: null } }]);
   });
 
+  it("목표 연도를 놓인 것보다 이른 해로 줄일 수 없다 — 서버가 막는다 (검토 A-16)", () => {
+    // 견본의 마지막 칸·이정표가 2034년이다.
+    expect(lastPlacedYear(fromPath())).toBe(2034);
+    expect(rejection(() => apply([{ op: "setGoal", horizonYear: 2033 }]))).toBe("invalid-horizon");
+    expect(apply([{ op: "setGoal", horizonYear: 2035 }]).next.goal.horizonYear).toBe(2035);
+  });
+
+  it("이정표의 단계를 고치고 지울 수 있다 (검토 A-14)", () => {
+    const changed = apply([{ op: "editMilestone", id: "master", stage: "grad_phd" }]);
+    expect(changed.next.milestones.find((m) => m.id === "master")?.stage).toBe("grad_phd");
+    expect(changed.changes).toEqual([{ op: "milestone", targetId: "master", before: { stage: "grad_master" }, after: { stage: "grad_phd" } }]);
+    const cleared = apply([{ op: "editMilestone", id: "master", stage: null }]).next;
+    expect(cleared.milestones.find((m) => m.id === "master")?.stage).toBeUndefined();
+    expect(rejection(() => apply([{ op: "editMilestone", id: "master", label: "석사 입학" }]))).toBe("no-change");
+  });
+
   it("목표 연도는 기준 연도에서 10년 안", () => {
     expect(rejection(() => apply([{ op: "setGoal", horizonYear: 2037 }]))).toBe("invalid-horizon");
     expect(apply([{ op: "setGoal", horizonYear: 2036, title: "박사 후 연구원" }]).next.goal).toMatchObject({ horizonYear: 2036, title: "박사 후 연구원" });
@@ -183,6 +220,18 @@ describe("timelineBands", () => {
     expect(bands[0]).toMatchObject({ isNow: true });
     expect(bands[0].placements.map((p) => p.id)).toEqual(["scholarship", "loan"]);
     expect(bands.find((b) => halfLabel(b.half) === "2028 하반기")?.milestones.map((m) => m.id)).toEqual(["master"]);
+  });
+
+  it("앞에서 시작해 이어지는 배치를 띠마다 '계속'으로 (검토 A-8)", () => {
+    const blueprint = fromPath();
+    const band = (label: string) => timelineBands(blueprint, "2026-10").find((b) => halfLabel(b.half) === label)!;
+    // 2030 하반기: BK21·월세(2030.09까지)도 아직 이어진다.
+    expect(band("2030 하반기").continuing.map((p) => p.id)).toEqual(["loan", "stipend", "bk21", "rent", "savings"]);
+    // 2034 하반기(박사 학위): 대출·장려금(2034.09까지)만 남는다 — 적금(2031.09)은 끝났다.
+    expect(band("2034 하반기").continuing.map((p) => p.id)).toEqual(["loan", "stipend"]);
+    expect(band("2026 하반기").continuing).toEqual([]); // 그 반기에 시작한 것은 "계속"이 아니다
+    const dropped = { ...blueprint, placements: blueprint.placements.map((p) => (p.id === "loan" ? { ...p, status: "dropped" as const } : p)) };
+    expect(timelineBands(dropped, "2026-10").find((b) => halfLabel(b.half) === "2034 하반기")!.continuing.map((p) => p.id)).toEqual(["stipend"]);
   });
 });
 

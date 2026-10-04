@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { findCard } from "@/content/cards";
 import { PATHS } from "@/content/paths";
@@ -12,18 +12,19 @@ import { primaryButton } from "@/features/card/session";
 import { CERTAINTY_LABELS, PLACEMENT_ROLE_LABELS, PLACEMENT_STATUS_LABELS, PLAN_STAGE_LABELS } from "@/features/labels";
 import { Chip } from "@/features/plan/PlanNew";
 import { ageText } from "@/features/policy/PolicyView";
-import { formatPeriod, policyName } from "@/features/plan/Timeline";
-import type { BlueprintOp } from "@/lib/blueprint/apply";
-import { certaintyOf } from "@/lib/blueprint/certainty";
+import { formatMonth, formatPeriod, policyName } from "@/features/plan/Timeline";
+import { lastPlacedYear, type BlueprintOp } from "@/lib/blueprint/apply";
+import { certaintyOf, endsBefore } from "@/lib/blueprint/certainty";
 import { MAX_HORIZON_YEARS, STATUS_TRANSITIONS, type Blueprint, type Milestone, type Placement } from "@/lib/blueprint/model";
-import { addMonths, monthIndex } from "@/lib/blueprint/month";
+import { addMonths } from "@/lib/blueprint/month";
+import { markFactsSeen } from "@/lib/seen-facts";
 
 /*
  * 청사진 화면의 시트들 (청사진 설계 7.4–7.6). 모두 op를 만들어 onOps로 넘기기만 한다 —
  * 규칙(전이·기간·상한)은 서버의 apply.ts가 본다. 화면은 갈 수 있는 것만 보여 줄 뿐이다.
  */
 
-type SheetProps = { busy: boolean; onOps: (ops: BlueprintOp[], options?: { close?: boolean }) => void };
+type SheetProps = { busy: boolean; onOps: (ops: BlueprintOp[], options?: { close?: boolean }) => Promise<void> | void };
 
 const secondaryButton = "rounded-pill border border-ink px-5 py-2.5 disabled:opacity-40";
 const inputClass = "rounded-input border border-stone bg-eggshell px-3 py-2.5 text-[16px] focus:border-ink";
@@ -44,17 +45,27 @@ export function PlacementDetail({ blueprint, placement, now, busy, onOps }: Shee
   const policy = policyById.get(placement.policyId);
   const why = slotWhy(blueprint, placement);
   const certainty = certaintyOf(placement, policy);
+  const hasCard = Boolean(findCard(placement.policyId));
   const [note, setNote] = useState(placement.note ?? "");
   const [confirmRemove, setConfirmRemove] = useState(false);
+  /** 옮길 만큼(달). 반기 버튼은 고르기만 하고, [옮기기]가 한 번에 보낸다 — 누를 때마다 REV가 오르지 않게 (검토 A-5). */
+  const [shift, setShift] = useState(0);
 
-  /** 반기 단위로 옮긴다 — 기간은 그대로. */
-  const shift = (months: number) =>
-    onOps([{ op: "movePlacement", id: placement.id, from: addMonths(placement.from, months), ...(placement.to && { to: addMonths(placement.to, months) }) }]);
+  // 이 시트는 신청 회차·한계를 펼친다 — 카드가 있는 정책이면 사실을 본 것으로 기억한다 (청사진 설계 2.5, 검토 A-3).
+  useEffect(() => {
+    if (hasCard) markFactsSeen(placement.policyId);
+  }, [hasCard, placement.policyId]);
+
+  const moved = { from: addMonths(placement.from, shift), ...(placement.to && { to: addMonths(placement.to, shift) }) };
+  const ends = policy?.planning?.endsAt;
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <p className="text-[20px]">{policyName(placement.policyId)}</p>
+        <p className="text-[20px]">
+          {policyName(placement.policyId)}
+          {policy?.planning?.repayable && <span className="ml-2 text-[14px] text-graphite">갚아야 해요</span>}
+        </p>
         <p className="mt-1 text-[14px] text-graphite">
           <span className="font-mono tabular">{formatPeriod(placement)}</span> · {PLACEMENT_ROLE_LABELS[placement.role]} · {CERTAINTY_LABELS[certainty]}
         </p>
@@ -64,7 +75,7 @@ export function PlacementDetail({ blueprint, placement, now, busy, onOps }: Shee
               정책 보기
             </Link>
           )}
-          {findCard(placement.policyId) && (
+          {hasCard && (
             <Link href={`/card/${placement.policyId}`} className="rounded-pill border border-stone px-4 py-1.5 text-[14px] hover:border-graphite">
               따져보기 ◆
             </Link>
@@ -78,11 +89,17 @@ export function PlacementDetail({ blueprint, placement, now, busy, onOps }: Shee
           {why}
         </p>
       )}
-      {certainty !== "confirmed" && (
-        <p className="text-[14px] text-smoke">
-          {certainty === "expected" ? "다시 열린다는 근거로 놓은 예상 시점이에요." : "이 시점에 열린다는 근거가 아직 없어요."} 공식 공고로 확인하세요.
-        </p>
-      )}
+      <p className="text-[14px] text-smoke">
+        {certainty === "confirmed"
+          ? placement.to && placement.to !== placement.from
+            ? "첫 신청 회차만 확정이에요. 그 뒤는 공고가 나올 때마다 확인하세요."
+            : "실제 신청 회차 안에 있어요. 신청 전에 공고를 확인하세요."
+          : endsBefore(placement, policy) && ends
+            ? `이 사업은 ${formatMonth(ends.month)}까지로 되어 있어요 — 그 뒤에는 이어질지 알 수 없어요.`
+            : certainty === "expected"
+              ? "다시 열린다는 근거로 놓은 예상 시점이에요. 공식 공고로 확인하세요."
+              : "이 시점에 열린다는 근거가 아직 없어요. 공식 공고로 확인하세요."}
+      </p>
       {policy && <ApplicationBox applications={policy.policy.applications} now={now} />}
       {policy?.counterpoints[0] && (
         <p className="text-[14px] text-graphite">
@@ -108,15 +125,35 @@ export function PlacementDetail({ blueprint, placement, now, busy, onOps }: Shee
         <h3 id="when-title" className="text-[15px] font-medium">
           시점
         </h3>
-        <div className="mt-3 flex items-center gap-3">
-          <button type="button" disabled={busy} onClick={() => shift(-6)} className={secondaryButton}>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <button type="button" disabled={busy} onClick={() => setShift((s) => s - 6)} className={secondaryButton}>
             ◀ 반기
           </button>
-          <span className="font-mono text-[15px] tabular">{formatPeriod(placement)}</span>
-          <button type="button" disabled={busy} onClick={() => shift(6)} className={secondaryButton}>
+          <span className="font-mono text-[15px] tabular" aria-live="polite">
+            {formatPeriod(moved)}
+          </span>
+          <button type="button" disabled={busy} onClick={() => setShift((s) => s + 6)} className={secondaryButton}>
             반기 ▶
           </button>
         </div>
+        {shift !== 0 && (
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={async () => {
+                await onOps([{ op: "movePlacement", id: placement.id, ...moved }]);
+                setShift(0);
+              }}
+              className={secondaryButton}
+            >
+              옮기기
+            </button>
+            <button type="button" onClick={() => setShift(0)} className="rounded-pill border border-stone px-5 py-2.5">
+              그대로
+            </button>
+          </div>
+        )}
       </section>
 
       <label className="flex flex-col gap-1.5 text-[14px]">
@@ -124,7 +161,7 @@ export function PlacementDetail({ blueprint, placement, now, busy, onOps }: Shee
           메모 <span className="text-smoke">(선택, 200자)</span>
         </span>
         <textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} rows={2} className={inputClass} />
-        <span className="text-[13px] text-smoke">나만 볼 수 있어요. 소득·건강 같은 사정은 적지 마세요.</span>
+        <span className="text-[13px] text-smoke">다른 사람에게 보이지 않아요. 소득·건강 같은 사정은 적지 마세요.</span>
         <button
           type="button"
           disabled={busy || note.trim() === (placement.note ?? "")}
@@ -280,14 +317,16 @@ function PlaceForm({ blueprint, policy, nowMonth, busy, onOps, onBack }: SheetPr
 export function MilestoneForm({ milestone, nowMonth, busy, onOps }: SheetProps & { milestone: Milestone | null; nowMonth: string }) {
   const [label, setLabel] = useState(milestone?.label ?? "");
   const [at, setAt] = useState(milestone?.at ?? nowMonth);
-  const [stage, setStage] = useState("");
+  const [stage, setStage] = useState<string>(milestone?.stage ?? "");
   const [confirmRemove, setConfirmRemove] = useState(false);
   const valid = label.trim().length > 0 && /^\d{4}-\d{2}$/.test(at);
+  const picked = stage ? (stage as (typeof PlanStage.options)[number]) : null;
 
+  // 고칠 때도 단계를 바꿀 수 있다 — 빈 값은 "이 이정표에서 단계가 바뀌지 않음"(null) (검토 A-14).
   const save = () =>
     milestone
-      ? onOps([{ op: "editMilestone", id: milestone.id, label: label.trim(), at }], { close: true })
-      : onOps([{ op: "addMilestone", label: label.trim(), at, ...(stage && { stage: stage as (typeof PlanStage.options)[number] }) }], { close: true });
+      ? onOps([{ op: "editMilestone", id: milestone.id, label: label.trim(), at, ...(stage !== (milestone.stage ?? "") && { stage: picked }) }], { close: true })
+      : onOps([{ op: "addMilestone", label: label.trim(), at, ...(picked && { stage: picked }) }], { close: true });
 
   return (
     <div className="flex flex-col gap-5">
@@ -300,21 +339,19 @@ export function MilestoneForm({ milestone, nowMonth, busy, onOps }: SheetProps &
         <span>언제</span>
         <input type="month" value={at} onChange={(e) => setAt(e.target.value)} className={`w-44 ${inputClass}`} />
       </label>
-      {!milestone && (
-        <label className="flex flex-col gap-1.5 text-[14px]">
-          <span>
-            이때부터의 학적·단계 <span className="text-smoke">(선택)</span>
-          </span>
-          <select value={stage} onChange={(e) => setStage(e.target.value)} className={inputClass}>
-            <option value="">그대로</option>
-            {PlanStage.options.map((option) => (
-              <option key={option} value={option}>
-                {PLAN_STAGE_LABELS[option]}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
+      <label className="flex flex-col gap-1.5 text-[14px]">
+        <span>
+          이때부터의 학적·단계 <span className="text-smoke">(선택)</span>
+        </span>
+        <select value={stage} onChange={(e) => setStage(e.target.value)} className={inputClass}>
+          <option value="">그대로</option>
+          {PlanStage.options.map((option) => (
+            <option key={option} value={option}>
+              {PLAN_STAGE_LABELS[option]}
+            </option>
+          ))}
+        </select>
+      </label>
       <button type="button" disabled={busy || !valid} onClick={save} className={primaryButton}>
         {milestone ? "바꾸기" : "이정표 넣기"}
       </button>
@@ -344,8 +381,8 @@ export function GoalForm({ blueprint, busy, onOps }: SheetProps & { blueprint: B
   const [title, setTitle] = useState(blueprint.goal.title);
   const [horizonYear, setHorizonYear] = useState(blueprint.goal.horizonYear);
   const baseYear = Number(blueprint.baseline.asOf.slice(0, 4));
-  /** 놓인 것보다 이르게 잡을 수 없다 — 칸이 목표 연도 밖으로 나간다. */
-  const lastYear = Math.max(baseYear, ...[...blueprint.placements.map((p) => p.to ?? p.from), ...blueprint.milestones.map((m) => m.at)].map((ym) => Math.floor(monthIndex(ym) / 12)));
+  /** 놓인 것보다 이르게 잡을 수 없다 — 칸이 목표 연도 밖으로 나간다. 서버도 같은 규칙으로 막는다(apply.ts setGoal). */
+  const lastYear = lastPlacedYear(blueprint);
 
   return (
     <div className="flex flex-col gap-5">

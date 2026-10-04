@@ -4,6 +4,8 @@ import type { User } from "firebase/auth";
 import Link from "next/link";
 import { useState } from "react";
 
+import { findPath } from "@/content/paths";
+import { ClaimItem } from "@/features/card/Reveal";
 import { ErrorNote, primaryButton } from "@/features/card/session";
 import { formatDate } from "@/features/labels";
 import { PlanGate } from "@/features/plan/PlanGate";
@@ -72,6 +74,7 @@ function Plan({ user, blueprint }: { user: User; blueprint: Blueprint }) {
     }
   }
 
+  const path = blueprint.goal.pathId ? findPath(blueprint.goal.pathId) : undefined;
   const placement = sheet?.kind === "placement" ? blueprint.placements.find((p) => p.id === sheet.id) : undefined;
   const milestone = sheet?.kind === "milestone" && sheet.id ? (blueprint.milestones.find((m) => m.id === sheet.id) ?? null) : null;
   const sheetProps = { busy: writer.busy, onOps };
@@ -94,6 +97,17 @@ function Plan({ user, blueprint }: { user: User; blueprint: Blueprint }) {
         목표 바꾸기
       </button>
       <p className="mt-4 text-[14px] text-smoke">정책은 해마다 바뀌어요. 예상·미정 칸은 공식 공고로 다시 확인하세요. 대상인지는 신청 기관이 정해요.</p>
+      {path && path.caveats.length > 0 && (
+        // 견본에서 만든 청사진이면 그 경로의 한계를 늘 다시 볼 수 있게 (검토 A-18). 만들기 미리보기에만 두면 만든 뒤 사라진다.
+        <details className="mt-4 border-t border-stone pt-4">
+          <summary className="cursor-pointer text-[15px]">이 경로의 한계</summary>
+          <ul className="mt-4 flex flex-col gap-4">
+            {path.caveats.map((claim) => (
+              <ClaimItem key={claim.id} claim={claim} sources={new Map(path.sources.map((s) => [s.id, s]))} now={now} />
+            ))}
+          </ul>
+        </details>
+      )}
 
       <div className="mt-8">
         <Timeline
