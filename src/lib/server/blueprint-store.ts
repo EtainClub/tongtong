@@ -9,6 +9,8 @@ import {
   BlueprintRejection,
   checkAnchor,
   checkHorizon,
+  nextAckedChecks,
+  type BlueprintAckInput,
   type BlueprintCreateInput,
   type BlueprintPatchInput,
 } from "@/lib/blueprint/apply";
@@ -105,12 +107,28 @@ export async function updateBlueprint(uid: string, input: BlueprintPatchInput, n
       if (prev.rev !== input.expectedRev) throw new Refusal(409, "stale-rev");
 
       const { next, changes } = applyChanges(prev, input.ops, { policies: visiblePolicies(), now, newId: () => randomUUID().slice(0, 8) });
-      const version: Version = { rev: next.rev, intent: input.intent || null, trigger: { kind: "user" }, changes, createdAt: now.toISOString() };
+      const version: Version = { rev: next.rev, intent: input.intent || null, trigger: input.trigger ?? { kind: "user" }, changes, createdAt: now.toISOString() };
       tx.set(ref, compact(next));
       tx.set(versionRef(uid, input.id, next.rev), compact(version));
       return next;
     }),
   );
+}
+
+/**
+ * 점검 알림 닫기 (청사진 설계 5.1). 계획을 바꾸지 않으므로 REV도, 수정 시각도 건드리지 않는다 — ackedChecks만.
+ * 지금 계산되지 않는 옛 키는 걷어 낸다(nextAckedChecks).
+ */
+export async function ackChecks(uid: string, input: BlueprintAckInput) {
+  return db.runTransaction(async (tx) => {
+    const ref = blueprints(uid).doc(input.id);
+    const snapshot = await tx.get(ref);
+    const blueprint = snapshot.data() as Blueprint | undefined;
+    if (!blueprint || blueprint.status !== "active") throw new Refusal(404, "unknown-blueprint");
+    const ackedChecks = nextAckedChecks(blueprint.ackedChecks, input.keys, input.live);
+    tx.update(ref, { ackedChecks });
+    return { ackedChecks };
+  });
 }
 
 /** 보관 — 지우지 않고 내린다. 새 청사진을 만들 수 있게 된다. 영구히 지우려면 내 기록의 "청사진 지우기"(deleteUserData scope=blueprints). */

@@ -33,6 +33,8 @@ export const blueprintOp = z.discriminatedUnion("op", [
   /** to를 빼면 한 달짜리가 된다 — 기간을 지키려면 클라이언트가 to도 옮겨 보낸다. */
   z.object({ op: z.literal("movePlacement"), id, from: YearMonth, to: YearMonth.optional() }),
   z.object({ op: z.literal("setStatus"), id, status: PlacementStatus }),
+  /** 항목이 개정됐는데 계획은 그대로 둔다 — 배치가 기대는 버전을 항목의 지금 버전으로 (점검 policy-updated의 "이대로 둘게요"). */
+  z.object({ op: z.literal("acceptPolicyVersion"), id }),
   /** 빈 문자열은 메모를 지운다. */
   z.object({ op: z.literal("setNote"), id, note: z.string().trim().max(200) }),
   z.object({ op: z.literal("addMilestone"), label, at: YearMonth, stage: PlanStage.optional() }),
@@ -44,13 +46,38 @@ export const blueprintOp = z.discriminatedUnion("op", [
 ]);
 export type BlueprintOp = z.infer<typeof blueprintOp>;
 
+/** 왜 바뀌었나 — 사용자가 직접 고쳤나, 점검을 반영했나 (REV 기록에 남는다). */
+export const patchTrigger = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("user") }),
+  z.object({ kind: z.literal("check"), checkKind: z.string().max(40), policyId: z.string().max(100).optional() }),
+]);
+export type PatchTrigger = z.infer<typeof patchTrigger>;
+
 export const blueprintPatchInput = z.object({
   id,
   /** 보고 고친 REV. 그 사이 다른 기기에서 바뀌었으면 거절한다(stale-rev) — 덮어쓰지 않는다. */
   expectedRev: z.number().int().positive(),
   ops: z.array(blueprintOp).min(1).max(20),
   intent: z.string().trim().max(80).optional(),
+  trigger: patchTrigger.optional(),
 });
+
+/**
+ * 점검 알림 닫기 (청사진 설계 5.1) — 계획을 바꾸지 않으므로 REV를 올리지 않는다.
+ * live는 지금 화면에 계산된 점검 키 전부다. 그 밖의 옛 키는 걷어 내 ackedChecks가 끝없이 쌓이지 않게 한다.
+ */
+export const blueprintAckInput = z.object({
+  id,
+  keys: z.array(z.string().max(200)).min(1).max(20),
+  live: z.array(z.string().max(200)).max(200),
+});
+export type BlueprintAckInput = z.infer<typeof blueprintAckInput>;
+
+/** 닫은 점검 키 — (이미 닫은 것 + 새로 닫은 것) 가운데 지금도 계산되는 것만. 순서는 처음 닫은 순서. */
+export function nextAckedChecks(prev: readonly string[], keys: readonly string[], live: readonly string[]): string[] {
+  const alive = new Set(live);
+  return [...new Set([...prev, ...keys])].filter((key) => alive.has(key));
+}
 export type BlueprintPatchInput = z.infer<typeof blueprintPatchInput>;
 
 /** 만들기. 기준 달(asOf)은 서버가 정한다 — 오늘. anchor는 견본의 출발점이 되는 달(없으면 오늘, 견본일 때만). */
@@ -171,6 +198,8 @@ function applyOne(blueprint: Blueprint, op: BlueprintOp, ctx: ApplyContext): Blu
         if (!STATUS_TRANSITIONS[p.status].includes(op.status)) throw new BlueprintRejection("invalid-transition");
         return { ...p, status: op.status, statusAt: at };
       });
+    case "acceptPolicyVersion":
+      return withPlacement(op.id, (p) => ({ ...p, policyVersion: cardVersion(placeablePolicy(ctx.policies, p.policyId)) }));
     case "setNote":
       return withPlacement(op.id, (p) => ({ ...p, note: op.note || undefined }));
     case "addMilestone":

@@ -1,8 +1,8 @@
-import { blueprintCreateInput, blueprintPatchInput } from "@/lib/blueprint/apply";
+import { blueprintAckInput, blueprintCreateInput, blueprintPatchInput } from "@/lib/blueprint/apply";
 import { verifyCaller } from "@/lib/guard/identity";
 import { checkOrigin } from "@/lib/guard/origin";
 import { Refusal, refusalResponse } from "@/lib/guard/refusal";
-import { archiveBlueprint, createBlueprint, updateBlueprint } from "@/lib/server/blueprint-store";
+import { ackChecks, archiveBlueprint, createBlueprint, updateBlueprint } from "@/lib/server/blueprint-store";
 
 export const runtime = "nodejs";
 
@@ -27,6 +27,19 @@ export async function PATCH(req: Request) {
     const parsed = blueprintPatchInput.safeParse(await req.json().catch(() => null));
     if (!parsed.success) throw new Refusal(400, "invalid-body");
     return Response.json(await updateBlueprint(uid, parsed.data));
+  } catch (error) {
+    return refusalResponse(error);
+  }
+}
+
+/** 점검 알림 닫기 — REV 없이 ackedChecks만 (청사진 설계 5.1). */
+export async function PUT(req: Request) {
+  try {
+    checkOrigin(req);
+    const { uid } = await verifyCaller(req);
+    const parsed = blueprintAckInput.safeParse(await req.json().catch(() => null));
+    if (!parsed.success) throw new Refusal(400, "invalid-body");
+    return Response.json(await ackChecks(uid, parsed.data));
   } catch (error) {
     return refusalResponse(error);
   }

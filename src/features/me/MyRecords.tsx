@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { CARDS } from "@/content/cards";
+import { PLAN_ENTRY_OPEN } from "@/content/paths";
 import { Category } from "@/content/schema";
 import { CATEGORY_LABELS, formatDate, LIFE_STAGE_LABELS } from "@/features/labels";
 import { Notice } from "@/features/ui/Notice";
 import { apiFetch, describeError } from "@/lib/firebase/api";
 import { linkGoogle, signOutToAnonymous, useAuth } from "@/lib/firebase/auth";
-import { readBlueprintsForExport } from "@/lib/firebase/blueprint";
+import { readBlueprintsForExport, useActiveBlueprint } from "@/lib/firebase/blueprint";
 import { useUserData } from "@/lib/firebase/user-data";
 import { summarize } from "@/lib/summary";
 
@@ -136,6 +137,7 @@ export function MyRecords() {
           저장한 카드
         </Link>
       </div>
+      {PLAN_ENTRY_OPEN && !isYouth && <PlanLink />}
 
       {summary.byTopic.length > 0 && (
         <section aria-labelledby="by-topic" className="mt-12">
@@ -217,7 +219,7 @@ export function MyRecords() {
 
       <details className="mt-2 rounded-card border border-stone p-6 sm:p-8">
         <summary className="cursor-pointer text-[17px]">기록 내려받기</summary>
-        <p className="mt-2 text-[15px] text-graphite">내 프로필과 카드별 판단 기록을 JSON 파일로 받아요.</p>
+        <p className="mt-2 text-[15px] text-graphite">내 프로필, 카드별 판단 기록, 청사진과 그 고친 기록을 JSON 파일로 받아요.</p>
         <button type="button" onClick={() => void download()} className="mt-4 rounded-pill border border-ink px-5 py-2.5 disabled:opacity-40">
           내려받기
         </button>
@@ -252,5 +254,16 @@ export function MyRecords() {
         </p>
       )}
     </main>
+  );
+}
+
+/** 청사진 진입점 (청사진 설계 7.1). 청사진을 구독하므로 진입점이 열렸을 때만 그린다. */
+function PlanLink() {
+  const { blueprint } = useActiveBlueprint();
+  return (
+    <Link href="/plan" className="mt-2 flex items-baseline justify-between gap-3 rounded-pill border border-stone px-5 py-3 hover:border-graphite">
+      <span>내 청사진</span>
+      {blueprint && <span className="font-mono text-[13px] text-graphite tabular">REV.{blueprint.rev}</span>}
+    </Link>
   );
 }

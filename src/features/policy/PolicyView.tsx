@@ -25,6 +25,7 @@ export function PolicyView({ policy, hasCard }: { policy: Policy; hasCard: boole
   }, [hasCard, policy.id]);
 
   const sources = new Map(policy.sources.map((s) => [s.id, s]));
+  const planable = policy.audience.includes("young_adult");
 
   return (
     <main id="main" className="mx-auto max-w-xl px-5 pt-6 pb-24">
@@ -41,12 +42,22 @@ export function PolicyView({ policy, hasCard }: { policy: Policy; hasCard: boole
       {policy.summary && <p className="mt-3 text-[17px] leading-relaxed">{policy.summary}</p>}
       <p className="mt-4 text-[14px] text-smoke">정책은 해마다 바뀌어요. 신청 전에 공식 공고로 다시 확인하세요. 대상인지는 신청 기관이 정해요.</p>
 
-      {hasCard && (
-        <div className="mt-8">
-          <Link href={`/card/${policy.id}`} className={`${primaryButton} block text-center`}>
-            따져보기
-          </Link>
-          <p className="mt-2 text-[13px] text-smoke">이미 내용을 봤으니 처음 문장을 믿는지는 묻지 않아요.</p>
+      {(hasCard || planable) && (
+        <div className="mt-8 flex flex-col gap-2">
+          {hasCard && (
+            <>
+              <Link href={`/card/${policy.id}`} className={`${primaryButton} block text-center`}>
+                따져보기
+              </Link>
+              <p className="mb-2 text-[13px] text-smoke">이미 내용을 봤으니 처음 문장을 믿는지는 묻지 않아요.</p>
+            </>
+          )}
+          {/* 청사진이 없으면 /plan이 "청사진 만들기"로 안내한다 (7.1). 청소년은 /plan이 막는다. */}
+          {planable && (
+            <Link href={`/plan?add=${policy.id}`} className="w-full rounded-pill border border-ink px-6 py-4 text-center">
+              청사진에 넣기
+            </Link>
+          )}
         </div>
       )}
 

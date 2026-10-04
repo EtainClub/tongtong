@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { CARDS } from "@/content/cards";
+import { PLAN_ENTRY_OPEN } from "@/content/paths";
+import { FeedDone } from "@/features/feed/FeedDone";
 import { SwipeDeck, type SwipeCommand, type SwipeDirection } from "@/features/feed/SwipeDeck";
 import { revisitLabel } from "@/features/labels";
 import { Onboarding } from "@/features/onboarding/Onboarding";
@@ -99,9 +101,17 @@ export function Feed() {
     <main id="main" className="mx-auto flex min-h-dvh max-w-xl flex-col px-5 pt-6 pb-10">
       <header className="flex items-center justify-between">
         <h1 className="text-[20px] font-light tracking-[-0.02em]">통통</h1>
-        <Link href="/me" className="rounded-pill border border-stone px-4 py-1.5 text-[14px] hover:border-graphite">
-          내 기록
-        </Link>
+        <nav className="flex gap-2">
+          {/* 공개 견본이 생기면 연다 (청사진 설계 7.1, 부록 A-12). 청소년에게는 없다. */}
+          {PLAN_ENTRY_OPEN && data.profile.audienceType === "young_adult" && (
+            <Link href="/plan" className="rounded-pill border border-stone px-4 py-1.5 text-[14px] hover:border-graphite">
+              청사진
+            </Link>
+          )}
+          <Link href="/me" className="rounded-pill border border-stone px-4 py-1.5 text-[14px] hover:border-graphite">
+            내 기록
+          </Link>
+        </nav>
       </header>
 
       {revisits.length > 0 && (
@@ -165,10 +175,7 @@ export function Feed() {
           </p>
         </>
       ) : (
-        <section className="mt-24 text-center">
-          <p className="text-[24px] font-light">지금 볼 카드를 다 봤어요.</p>
-          <p className="mt-3 text-graphite">새 카드가 올라오면 여기에 나타나요.</p>
-        </section>
+        <FeedDone cards={CARDS.filter((c) => c.audience.includes(data.profile!.audienceType))} states={data.states} now={now} />
       )}
 
       {error && (

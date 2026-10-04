@@ -100,7 +100,8 @@ export type Milestone = z.infer<typeof milestoneSchema>;
 export type Placement = z.infer<typeof placementSchema>;
 export type Blueprint = z.infer<typeof blueprintSchema>;
 
-export const ChangeOp = z.enum(["add", "remove", "move", "status", "note", "milestone", "goal"]);
+/** basis: 배치가 기대는 항목 버전을 새 버전으로 받아들임 — "이대로 둘게요" (청사진 설계 5.1). */
+export const ChangeOp = z.enum(["add", "remove", "move", "status", "note", "basis", "milestone", "goal"]);
 
 /** REV 하나에서 바뀐 것 하나. before/after는 그 대상의 바뀐 필드만 담는다 — 비교 화면이 LLM 없이 그린다. */
 export type Change = {

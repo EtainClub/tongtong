@@ -49,6 +49,8 @@ export function diffBlueprint(a: Blueprint, b: Blueprint): Change[] {
     if (status) changes.push({ op: "status", targetId: id, ...status });
     const note = changed(before, after, ["note"]);
     if (note) changes.push({ op: "note", targetId: id, ...note });
+    const basis = changed(before, after, ["policyVersion"]);
+    if (basis) changes.push({ op: "basis", targetId: id, ...basis });
   }
   for (const [id, after] of bPlacements) {
     if (!aPlacements.has(id)) {

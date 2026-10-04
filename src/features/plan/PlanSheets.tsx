@@ -15,8 +15,9 @@ import { ageText } from "@/features/policy/PolicyView";
 import { formatMonth, formatPeriod, policyName } from "@/features/plan/Timeline";
 import { lastPlacedYear, type BlueprintOp } from "@/lib/blueprint/apply";
 import { certaintyOf, endsBefore } from "@/lib/blueprint/certainty";
+import { ageRangeAt, blueprintStageAt } from "@/lib/blueprint/check";
 import { MAX_HORIZON_YEARS, STATUS_TRANSITIONS, type Blueprint, type Milestone, type Placement } from "@/lib/blueprint/model";
-import { addMonths } from "@/lib/blueprint/month";
+import { addMonths, monthIndex } from "@/lib/blueprint/month";
 import { markFactsSeen } from "@/lib/seen-facts";
 
 /*
@@ -195,11 +196,32 @@ export function PlacementDetail({ blueprint, placement, now, busy, onOps }: Shee
 
 // ── 정책 넣기 ──
 
-export function AddPolicy({ blueprint, nowMonth, busy, onOps }: SheetProps & { blueprint: Blueprint; nowMonth: string }) {
-  const [role, setRole] = useState<(typeof PlacementRole.options)[number] | null>(null);
-  const [picked, setPicked] = useState<Policy | null>(null);
+/**
+ * 그 달에 이 정책이 맞지 않을 수 있는 까닭 — 단계·나이·사업 기간 (청사진 설계 7.6). 판정하지 않는다:
+ * 숨기지 않고 "다를 수 있어요"로 알려 뒤로 보낼 뿐이다(원칙 3). 생일을 몰라 나이는 확실할 때만 말한다.
+ */
+function fitNotes(blueprint: Blueprint, policy: Policy, month: string): string[] {
+  const notes: string[] = [];
+  const stages = policy.planning?.stages ?? [];
+  const stage = blueprintStageAt(blueprint, month);
+  if (stages.length > 0 && !stages.includes(stage)) notes.push(`그때 단계(${PLAN_STAGE_LABELS[stage]})와 대상이 다를 수 있어요`);
+  const age = policy.planning?.age;
+  const range = ageRangeAt(blueprint.baseline, month);
+  if (age && range && ((age.max !== undefined && range[0] > age.max) || (age.min !== undefined && range[1] < age.min))) notes.push(`그때 나이 조건(${ageText(age)})에 맞지 않아요`);
+  const endsAt = policy.planning?.endsAt?.month;
+  if (endsAt && monthIndex(month) > monthIndex(endsAt)) notes.push(`사업이 ${formatMonth(endsAt)}까지로 되어 있어요`);
+  return notes;
+}
 
-  const policies = PLACEABLE.filter((policy) => !role || policy.planning?.roles.includes(role));
+export function AddPolicy({ blueprint, nowMonth, busy, onOps, initial }: SheetProps & { blueprint: Blueprint; nowMonth: string; initial?: Policy }) {
+  const [role, setRole] = useState<(typeof PlacementRole.options)[number] | null>(null);
+  // 카드 끝 화면·정책 페이지에서 정책을 들고 들어왔으면 바로 그 정책의 넣기 화면 (B3).
+  const [picked, setPicked] = useState<Policy | null>(initial && PLACEABLE.includes(initial) ? initial : null);
+
+  // 지금 맞는 것을 앞으로 — 맞지 않을 수 있는 것은 뒤로, 까닭과 함께.
+  const policies = PLACEABLE.filter((policy) => !role || policy.planning?.roles.includes(role))
+    .map((policy) => ({ policy, notes: fitNotes(blueprint, policy, nowMonth) }))
+    .sort((a, b) => Number(a.notes.length > 0) - Number(b.notes.length > 0));
 
   if (picked) return <PlaceForm key={picked.id} blueprint={blueprint} policy={picked} nowMonth={nowMonth} busy={busy} onOps={onOps} onBack={() => setPicked(null)} />;
 
@@ -216,17 +238,19 @@ export function AddPolicy({ blueprint, nowMonth, busy, onOps }: SheetProps & { b
         ))}
       </div>
       <ul className="mt-6 flex flex-col">
-        {policies.map((policy) => (
+        {policies.map(({ policy, notes }) => (
           <li key={policy.id}>
             <button type="button" onClick={() => setPicked(policy)} className="block w-full border-t border-stone py-4 text-left hover:bg-taupe/40">
               <span className="text-[16px]">
                 {policy.name}
+                {policy.planning?.repayable && <span className="ml-1.5 text-[13px] text-graphite">갚아야 해요</span>}
                 {findCard(policy.id) && <span className="ml-1.5 text-[12px] text-graphite">◆</span>}
               </span>
               <span className="mt-1 block text-[13px] text-smoke">
                 {(policy.planning?.roles ?? []).map((r) => PLACEMENT_ROLE_LABELS[r]).join(" · ") || "역할 정보 없음"}
                 {policy.planning?.age && ` · ${ageText(policy.planning.age)}`}
               </span>
+              {notes.length > 0 && <span className="mt-1 block text-[13px] text-graphite">지금은 {notes.join(" · ")}</span>}
             </button>
           </li>
         ))}
@@ -245,6 +269,7 @@ function PlaceForm({ blueprint, policy, nowMonth, busy, onOps, onBack }: SheetPr
 
   const length = months.trim() === "" ? 0 : Number(months);
   const valid = /^\d{4}-\d{2}$/.test(from) && Number.isInteger(length) && length >= 0 && length <= 120;
+  const notes = valid ? fitNotes(blueprint, policy, from) : [];
 
   return (
     <div className="flex flex-col gap-5">
@@ -255,6 +280,7 @@ function PlaceForm({ blueprint, policy, nowMonth, busy, onOps, onBack }: SheetPr
       <label className="flex flex-col gap-1.5 text-[14px]">
         <span>언제부터</span>
         <input type="month" value={from} onChange={(e) => setFrom(e.target.value)} className={`w-44 ${inputClass}`} />
+        {notes.length > 0 && <span className="text-[13px] text-graphite">{notes.join(" · ")} — 그래도 넣을 수 있어요. 대상인지는 신청 기관이 정해요.</span>}
       </label>
       <label className="flex flex-col gap-1.5 text-[14px]">
         <span>

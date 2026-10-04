@@ -203,6 +203,7 @@ export function CardFlow({ card, user, data }: { card: Card; user: User; data: U
                 reasons={reasons}
                 opinionSaved={card.flow.opinion && !opinionLocalOnly}
                 saved={state?.saved ?? false}
+                planable={!isYouth && card.audience.includes("young_adult")}
                 onSave={session.toggleSave}
               />
               {/* 다른 사용자의 응답은 자기 판단을 마친 뒤에만 보인다 — 먼저 보면 앵커링이 된다 (검토 문서 3장 6번). */}
@@ -230,6 +231,8 @@ function Summary(props: {
   reasons: string[];
   opinionSaved: boolean;
   saved: boolean;
+  /** 청년이 청년 대상 정책을 봤을 때만 "청사진에 넣기"를 단다. */
+  planable: boolean;
   onSave: () => void;
 }) {
   const scaleText = (labels: readonly string[], value: ScaleValue | undefined) => (value === null ? "모르겠음" : value ? labels[value - 1] : null);
@@ -266,6 +269,12 @@ function Summary(props: {
           </button>
         )}
         <ShareButton card={props.card} />
+        {/* 청사진이 없으면 /plan이 "청사진 만들기"로 안내한다 (청사진 설계 7.1). */}
+        {props.planable && (
+          <Link href={`/plan?add=${props.card.id}`} className="w-full rounded-pill border border-ink px-6 py-4 text-center">
+            청사진에 넣기
+          </Link>
+        )}
         <Link href="/" className={`${primaryButton} text-center`}>
           다음 카드
         </Link>

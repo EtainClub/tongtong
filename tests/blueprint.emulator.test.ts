@@ -111,6 +111,25 @@ const enabled = Boolean(process.env.FIRESTORE_EMULATOR_HOST && process.env.FIREB
     expect((await db.doc(`users/${uid}`).get()).exists).toBe(true);
   });
 
+  test("점검 반영은 REV에 trigger: check로 남고, 알림 닫기는 REV를 올리지 않는다 (청사진 설계 5.1)", async () => {
+    const created = await store.createBlueprint(uid, fromPath);
+    await store.updateBlueprint(uid, {
+      id: created.id,
+      expectedRev: 1,
+      ops: [{ op: "setStatus", id: "loan", status: "ready" }],
+      trigger: { kind: "check", checkKind: "window-open", policyId: "income-contingent-loan" },
+    });
+    expect((await versions(uid, created.id))[1].trigger).toEqual({ kind: "check", checkKind: "window-open", policyId: "income-contingent-loan" });
+
+    const before = (await db.doc(`users/${uid}/blueprints/${created.id}`).get()).data() as Blueprint;
+    const result = await store.ackChecks(uid, { id: created.id, keys: ["window-open:loan:2026학년도 2학기"], live: ["window-open:loan:2026학년도 2학기", "x"] });
+    expect(result.ackedChecks).toEqual(["window-open:loan:2026학년도 2학기"]);
+    const after = (await db.doc(`users/${uid}/blueprints/${created.id}`).get()).data() as Blueprint;
+    expect(after.rev).toBe(before.rev);
+    expect(after.updatedAt).toBe(before.updatedAt);
+    expect(await versions(uid, created.id)).toHaveLength(2);
+  });
+
   test("계정을 지우면 청사진과 기록도 지워진다", async () => {
     const created = await store.createBlueprint(uid, fromPath);
     const { deleteUserData } = await import("@/lib/server/store");

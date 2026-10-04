@@ -1,11 +1,11 @@
 "use client";
 
 import type { User } from "firebase/auth";
-import { collection, getDocs, limit, onSnapshot, query, where } from "firebase/firestore";
+import { collection, getDocs, limit, onSnapshot, orderBy, query, startAfter, where } from "firebase/firestore";
 import { useCallback, useEffect, useState } from "react";
 
-import type { BlueprintOp } from "@/lib/blueprint/apply";
-import type { Blueprint } from "@/lib/blueprint/model";
+import type { BlueprintOp, PatchTrigger } from "@/lib/blueprint/apply";
+import type { Blueprint, Version } from "@/lib/blueprint/model";
 import { apiFetch, ApiError, describeError } from "@/lib/firebase/api";
 import { useAuth } from "@/lib/firebase/auth";
 import { firebaseDb } from "@/lib/firebase/client";
@@ -38,6 +38,13 @@ export function useActiveBlueprint(): ActiveBlueprint {
   }, [uid]);
 
   return state;
+}
+
+/** REV 기록 한 쪽 — 최근 것부터 pageSize개. before를 주면 그 REV보다 앞의 것 (청사진 설계 6.1 — 기록은 길어진다). */
+export async function readVersions(uid: string, blueprintId: string, before?: number, pageSize = 30): Promise<Version[]> {
+  const versions = collection(firebaseDb, "users", uid, "blueprints", blueprintId, "versions");
+  const page = query(versions, orderBy("rev", "desc"), ...(before !== undefined ? [startAfter(before)] : []), limit(pageSize));
+  return (await getDocs(page)).docs.map((doc) => doc.data() as Version);
 }
 
 /** 내려받기용 — 보관한 것까지 모든 청사진과 REV 기록. 내 문서라 보안 규칙이 읽기를 허락한다. */
@@ -74,12 +81,12 @@ export function useBlueprintWriter(user: User | null, blueprint: Blueprint | nul
   const [error, setError] = useState<string | null>(null);
 
   const send = useCallback(
-    async (ops: BlueprintOp[], intent?: string): Promise<boolean> => {
+    async (ops: BlueprintOp[], options: { intent?: string; trigger?: PatchTrigger } = {}): Promise<boolean> => {
       if (!user || !blueprint || busy) return false;
       setBusy(true);
       setError(null);
       try {
-        await apiFetch(user, "/api/blueprint", { method: "PATCH", body: { id: blueprint.id, expectedRev: blueprint.rev, ops, intent } });
+        await apiFetch(user, "/api/blueprint", { method: "PATCH", body: { id: blueprint.id, expectedRev: blueprint.rev, ops, ...options } });
         return true;
       } catch (e) {
         if (e instanceof ApiError && e.code === "no-change") return true;
@@ -92,5 +99,24 @@ export function useBlueprintWriter(user: User | null, blueprint: Blueprint | nul
     [user, blueprint, busy],
   );
 
-  return { send, busy, error, clearError: () => setError(null) };
+  /** 점검 알림 닫기 — REV 없이. live는 지금 계산된 점검 키 전부(옛 키를 걷어 내는 데 쓴다). */
+  const ack = useCallback(
+    async (keys: string[], live: string[]): Promise<boolean> => {
+      if (!user || !blueprint || busy) return false;
+      setBusy(true);
+      setError(null);
+      try {
+        await apiFetch(user, "/api/blueprint", { method: "PUT", body: { id: blueprint.id, keys, live } });
+        return true;
+      } catch (e) {
+        setError(describeBlueprintError(e));
+        return false;
+      } finally {
+        setBusy(false);
+      }
+    },
+    [user, blueprint, busy],
+  );
+
+  return { send, ack, busy, error, clearError: () => setError(null) };
 }
