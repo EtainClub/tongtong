@@ -13,7 +13,7 @@ import { eyo, formatManwon } from "@/features/labels";
 
 const Question = ({ text, premise }: { text: string; premise?: string }) => (
   <>
-    <p className="text-[24px] leading-tight font-light">{text}</p>
+    <p className="text-[22px] leading-snug font-bold tracking-tight">{text}</p>
     {premise && <p className="mt-3 text-[14px] text-graphite">{premise}</p>}
   </>
 );

@@ -88,11 +88,43 @@ body {
  * 모바일 하단 탭(BottomNav)의 높이. 탭이 그려진 화면에서만 값이 생긴다 — 본문이 탭 아래로 숨지 않게
  * body를 띄우고, 화면 아래에 붙는 알림(sticky bottom)도 이 값만큼 올린다.
  */
+body:has([data-top-bar]) {
+  --top-bar: calc(3.5rem + 1px); /* 높이 + 아래 선 */
+}
 @media (width < 40rem) {
   body:has([data-bottom-nav]) {
     --bottom-nav: calc(3.5rem + env(safe-area-inset-bottom));
     padding-bottom: var(--bottom-nav);
   }
+}
+
+/*
+ * 접이식 제목 — 브라우저 기본 ▶ 대신 오른쪽 끝의 꺾쇠, 열리면 돌아간다.
+ * <summary className="disclosure ..."> 에만 쓴다(줄 안에 놓인 작은 접이식은 기본 모양 그대로).
+ */
+summary.disclosure {
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  list-style: none;
+}
+summary.disclosure::-webkit-details-marker {
+  display: none;
+}
+summary.disclosure::after {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+  border-right: 1.5px solid var(--smoke);
+  border-bottom: 1.5px solid var(--smoke);
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 200ms var(--ease-out-expo);
+}
+details[open] > summary.disclosure::after {
+  transform: translateY(2px) rotate(-135deg);
 }
 
 /* 고정폭은 숫자에만 — 한글 라벨에 걸면 자간이 벌어진다 (잼통 "수치는 mono"). */

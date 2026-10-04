@@ -67,7 +67,7 @@ export function ProfileForm({
     <main id="main" className="mx-auto max-w-xl px-5 py-16">
       {mode === "onboarding" ? (
         <>
-          <h1 className="text-[48px] leading-[1.08] font-light tracking-[-0.02em]">통통</h1>
+          <h1 className="text-[44px] leading-[1.08] font-bold tracking-tight">통통</h1>
           <p className="mt-4 text-[18px] text-graphite">정책을 보고, 따져보고, 내 생각이 어떻게 바뀌는지 기록해요.</p>
         </>
       ) : (
@@ -75,7 +75,7 @@ export function ProfileForm({
           <Link href="/me" className="text-[14px] text-graphite underline-offset-4 hover:underline">
             ← 내 기록
           </Link>
-          <h1 className="mt-10 text-[36px] leading-[1.17] font-light tracking-[-0.02em]">내 상황 · 관심 주제</h1>
+          <h1 className="mt-6 text-[28px] leading-tight font-bold tracking-tight">내 상황 · 관심 주제</h1>
         </>
       )}
 
@@ -92,7 +92,7 @@ export function ProfileForm({
             {/* 청년은 청소년으로 돌아갈 수 없다 — 이미 청년인 사람에게는 고르기를 보여 주지 않는다. */}
             {(mode === "onboarding" || initial?.audienceType === "youth") && (
               <>
-                <h2 className="mt-10 text-[18px] font-medium">나는 지금</h2>
+                <h2 className="mt-10 text-[18px] font-bold tracking-tight">나는 지금</h2>
                 <div role="radiogroup" aria-label="나는 지금" className="mt-4 grid grid-cols-2 gap-2">
                   {(
                     [
@@ -140,7 +140,7 @@ export function ProfileForm({
               )
             ) : (
               <>
-                <h2 className="mt-10 text-[18px] font-medium">지금 나와 가까운 것은?</h2>
+                <h2 className="mt-10 text-[18px] font-bold tracking-tight">지금 나와 가까운 것은?</h2>
                 <p className="mt-1 text-[14px] text-smoke">여러 개 골라도 돼요. 카드 순서에만 쓰여요.</p>
                 <Chips options={LifeStage.options} labels={LIFE_STAGE_LABELS} value={stages} onToggle={toggle(setStages)} />
               </>
@@ -156,7 +156,7 @@ export function ProfileForm({
           </>
         ) : (
           <>
-            <h2 className="mt-10 text-[18px] font-medium">관심 있는 주제는?</h2>
+            <h2 className="mt-10 text-[18px] font-bold tracking-tight">관심 있는 주제는?</h2>
             <p className="mt-1 text-[14px] text-smoke">고르지 않아도 돼요. 이것도 카드 순서에만 쓰여요.</p>
             <Chips options={Category.options} labels={CATEGORY_LABELS} value={interests} onToggle={toggle(setInterests)} />
             <button type="button" onClick={() => save(interests)} disabled={busy || !user} className="mt-12 w-full rounded-pill bg-ink px-6 py-4 text-eggshell disabled:opacity-40">

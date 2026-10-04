@@ -66,7 +66,7 @@ export function Reveal({ card, now }: { card: Card; now: Date }) {
 
   return (
     <section aria-labelledby="reveal-title">
-      <h2 id="reveal-title" className="text-[24px] leading-tight font-light">
+      <h2 id="reveal-title" className="text-[22px] leading-snug font-bold tracking-tight">
         실제로는
       </h2>
 
@@ -81,7 +81,7 @@ export function Reveal({ card, now }: { card: Card; now: Date }) {
 
       {card.counterpoints.length > 0 && (
         <>
-          <h3 className="mt-10 text-[18px] font-medium">비판과 한계</h3>
+          <h3 className="mt-10 text-[18px] font-bold tracking-tight">비판과 한계</h3>
           <ul className="stagger mt-4 flex flex-col gap-4">
             {card.counterpoints.map((claim) => (
               <ClaimItem key={claim.id} claim={claim} sources={sources} now={now} />

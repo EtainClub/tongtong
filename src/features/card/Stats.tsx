@@ -43,7 +43,7 @@ export function CardStats({ card }: { card: Card }) {
 
   return (
     <section aria-labelledby={`stats-${card.id}`} className="mt-12 border-t border-stone pt-8">
-      <h2 id={`stats-${card.id}`} className="text-[18px] font-medium">
+      <h2 id={`stats-${card.id}`} className="text-[18px] font-bold tracking-tight">
         다른 사용자들은
       </h2>
       <p className="mt-1 text-[13px] text-smoke">통통 사용자들의 응답이며 여론조사가 아닙니다. 한 사람의 가장 최근 판단만 셉니다.</p>

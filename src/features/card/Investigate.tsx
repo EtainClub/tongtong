@@ -50,7 +50,7 @@ export function Investigate({ card, now }: { card: Card; now: Date }) {
 
   return (
     <section aria-labelledby="investigate-title" className="mt-12">
-      <h2 id="investigate-title" className="text-[18px] font-medium">
+      <h2 id="investigate-title" className="text-[18px] font-bold tracking-tight">
         조금 더 따져볼까요?
       </h2>
       <div className="stagger mt-4 grid grid-cols-2 gap-2">

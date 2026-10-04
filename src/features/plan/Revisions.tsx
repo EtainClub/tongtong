@@ -98,7 +98,7 @@ function History({ user, blueprint }: { user: User; blueprint: Blueprint }) {
       <Link href="/plan" className="text-[14px] text-graphite underline-offset-4 hover:underline">
         ← 내 청사진
       </Link>
-      <h1 className="mt-10 text-[32px] leading-tight font-light tracking-[-0.02em]">REV 기록</h1>
+      <h1 className="mt-6 text-[28px] leading-tight font-bold tracking-tight">REV 기록</h1>
       <p className="mt-2 text-[15px] text-graphite">{blueprint.goal.title} — 무엇이 언제 왜 바뀌었는지</p>
 
       <ol className="mt-8 flex flex-col">

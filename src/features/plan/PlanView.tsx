@@ -47,10 +47,7 @@ export function PlanView() {
 function Empty({ adding }: { adding: boolean }) {
   return (
     <main id="main" className="mx-auto max-w-xl px-5 pt-6 pb-16">
-      <Link href="/" className="text-[14px] text-graphite underline-offset-4 hover:underline">
-        ← 피드
-      </Link>
-      <h1 className="mt-10 text-[36px] leading-[1.17] font-light tracking-[-0.02em]">내 청사진</h1>
+      <h1 className="mt-2 text-[28px] leading-tight font-bold tracking-tight">내 청사진</h1>
       <p className="mt-4 text-[17px] leading-relaxed">되고 싶은 것을 정하면, 그 길에서 언제 어떤 정책을 쓸지 시간축에 놓아 볼 수 있어요. 정책이 바뀌면 같이 고쳐 가요.</p>
       {adding && <p className="mt-4 text-[15px] text-graphite">정책을 넣으려면 먼저 청사진을 만들어요.</p>}
       <Link href="/plan/new" className={`${primaryButton} mt-10 block text-center`}>
@@ -118,16 +115,13 @@ function Plan({ user, blueprint, add }: { user: User; blueprint: Blueprint; add:
 
   return (
     <main id="main" className="mx-auto max-w-xl px-5 pt-6 pb-24">
-      <Link href="/" className="text-[14px] text-graphite underline-offset-4 hover:underline">
-        ← 피드
-      </Link>
-      <p className="mt-10 flex justify-between text-[13px] text-smoke">
+      <p className="mt-2 flex justify-between text-[13px] text-smoke">
         <span>내 청사진</span>
         <Link href="/plan/revisions" className="font-mono tabular underline-offset-4 hover:underline">
           REV.{blueprint.rev} · {formatDate(Date.parse(blueprint.updatedAt))} 수정
         </Link>
       </p>
-      <h1 className="mt-1 text-[32px] leading-tight font-light tracking-[-0.02em]">
+      <h1 className="mt-1 text-[28px] leading-tight font-bold tracking-tight">
         {blueprint.goal.title} <span className="font-mono text-[20px] text-smoke tabular">({blueprint.goal.horizonYear})</span>
       </h1>
       <button type="button" onClick={() => setSheet({ kind: "goal" })} className="mt-2 text-[14px] text-graphite underline underline-offset-4">
@@ -137,7 +131,7 @@ function Plan({ user, blueprint, add }: { user: User; blueprint: Blueprint; add:
       {path && path.caveats.length > 0 && (
         // 견본에서 만든 청사진이면 그 경로의 한계를 늘 다시 볼 수 있게 (검토 A-18). 만들기 미리보기에만 두면 만든 뒤 사라진다.
         <details className="mt-4 border-t border-stone pt-4">
-          <summary className="cursor-pointer text-[15px]">이 경로의 한계</summary>
+          <summary className="disclosure text-[15px] font-semibold">이 경로의 한계</summary>
           <ul className="mt-4 flex flex-col gap-4">
             {path.caveats.map((claim) => (
               <ClaimItem key={claim.id} claim={claim} sources={new Map(path.sources.map((s) => [s.id, s]))} now={now} />

@@ -39,7 +39,7 @@ function MultipleChoice({ game, onDone, onReveal }: GameProps<"multiple_choice">
 
   return (
     <div>
-      <p className="text-[24px] leading-tight font-light">{game.question}</p>
+      <p className="text-[22px] leading-snug font-bold tracking-tight">{game.question}</p>
       <div className="mt-6 flex flex-col gap-2">
         {game.options.map((option) => {
           const isAnswer = option.id === answer.id;
@@ -81,7 +81,7 @@ function GuessAmount({ game, onDone, onReveal }: GameProps<"guess_amount">) {
 
   return (
     <div>
-      <p className="text-[24px] leading-tight font-light">{game.question}</p>
+      <p className="text-[22px] leading-snug font-bold tracking-tight">{game.question}</p>
       <p className="mt-3 text-[14px] text-graphite">{game.premise}</p>
 
       <div className="mt-8">
@@ -164,7 +164,7 @@ function Eligibility({ game, onDone, onReveal }: GameProps<"eligibility">) {
 
   return (
     <div>
-      <p className="text-[24px] leading-tight font-light">{game.question}</p>
+      <p className="text-[22px] leading-snug font-bold tracking-tight">{game.question}</p>
       <p className="mt-2 text-[14px] text-smoke">답은 이 화면에만 있고 저장하지 않아요.</p>
 
       <ol className="mt-6 flex flex-col gap-2">

@@ -32,8 +32,10 @@ export function ChecksPanel({
 
   return (
     <details open className="mt-6 rounded-card border border-stone p-5">
-      <summary className="cursor-pointer text-[16px] font-medium">
-        점검할 것 <span className="font-mono tabular">{checks.length}</span>
+      <summary className="disclosure text-[16px] font-semibold">
+        <span>
+          점검할 것 <span className="font-mono tabular">{checks.length}</span>
+        </span>
       </summary>
       <ul className="mt-4 flex flex-col">
         {checks.map((check) => {

@@ -160,7 +160,7 @@ export function SwipeDeck({
     : `transform ${EXIT_MS}ms var(--ease-out-expo) ${leaving ? STAMP_HOLD_MS : 0}ms, opacity ${EXIT_MS}ms ease-out ${leaving ? STAMP_HOLD_MS : 0}ms`;
 
   return (
-    <div ref={root} className="mt-8 grid flex-1 pb-3">
+    <div ref={root} className="mt-4 grid flex-1 pb-3">
       {/* 다음 카드가 아래 가장자리로 비친다. 앞 카드를 끌수록 제자리로 올라온다. */}
       {next && (
         <div
@@ -215,7 +215,7 @@ function Stamp({ label, filled }: { label: string; filled: boolean }) {
   return (
     <span
       aria-hidden="true"
-      className={`tong-stamp pointer-events-none absolute top-1/2 left-1/2 rounded-pill border-2 border-ink px-7 py-3 text-[32px] font-light ${filled ? "bg-ink text-eggshell" : "bg-eggshell text-ink"}`}
+      className={`tong-stamp pointer-events-none absolute top-1/2 left-1/2 rounded-pill border-2 border-ink px-7 py-3 text-[30px] font-bold tracking-tight ${filled ? "bg-ink text-eggshell" : "bg-eggshell text-ink"}`}
     >
       {label}
     </span>
@@ -224,7 +224,7 @@ function Stamp({ label, filled }: { label: string; filled: boolean }) {
 
 function SwipeHint({ position, label, opacity }: { position: string; label: string; opacity: number }) {
   return (
-    <span aria-hidden="true" className={`pointer-events-none absolute rounded-pill border border-ink bg-eggshell px-4 py-1.5 text-[14px] ${position}`} style={{ opacity }}>
+    <span aria-hidden="true" className={`pointer-events-none absolute rounded-pill border border-ink bg-eggshell px-4 py-1.5 text-[14px] font-semibold text-ink ${position}`} style={{ opacity }}>
       {label}
     </span>
   );
@@ -236,17 +236,18 @@ function SwipeHint({ position, label, opacity }: { position: string; label: stri
  */
 export function HookCard({ card, now, morph }: { card: Card; now: Date; morph: boolean }) {
   const application = currentApplication(card.policy.applications, now);
-  const hook = <p className="mt-6 text-[32px] leading-[1.13] font-light tracking-[-0.02em]">{card.hook}</p>;
+  const hook = <p className="mt-5 text-[30px] leading-[1.2] font-bold tracking-tight">{card.hook}</p>;
   return (
-    <article className="flex h-full flex-col justify-between rounded-card-lg border border-stone bg-eggshell p-8">
+    // 잼통 홈의 대표 카드처럼 어두운 판에 밝은 글자. 사진 대신 무채색 그러데이션 — 색은 데이터에만 (디자인 시스템).
+    <article className="relative flex h-full flex-col justify-between overflow-hidden rounded-card-lg bg-ink bg-[radial-gradient(120%_70%_at_100%_0%,#3b3631_0%,transparent_60%),radial-gradient(90%_60%_at_0%_100%,#2a2723_0%,transparent_70%)] p-7 text-eggshell shadow-[0_24px_48px_-24px_rgba(0,0,0,0.55)]">
       <div>
-        <p className="text-[13px] text-smoke">
-          {card.shortTitle} ·{" "}
-          <Link href={`/topics/${card.category}`} className="underline underline-offset-4 hover:text-graphite">
+        <div className="flex flex-wrap items-center gap-1.5 text-[12px]">
+          <Link href={`/topics/${card.category}`} className="rounded-[6px] bg-eggshell/15 px-2 py-0.5 font-semibold text-eggshell hover:bg-eggshell/25">
             {CATEGORY_LABELS[card.category]}
-          </Link>{" "}
-          · {formatEstimate(estimateSeconds(card))}
-        </p>
+          </Link>
+          <span className="rounded-[6px] bg-eggshell px-2 py-0.5 font-semibold text-ink">{card.shortTitle}</span>
+          <span className="ml-auto text-ash">{formatEstimate(estimateSeconds(card))}</span>
+        </div>
         {morph ? (
           <ViewTransition name={hookTransitionName(card.id)} share="morph" default="none">
             {hook}
@@ -255,10 +256,16 @@ export function HookCard({ card, now, morph }: { card: Card; now: Date; morph: b
           hook
         )}
         {/* 들어갈 이유 한 줄. 숏츠의 첫 줄을 흐리게 미리 보여 준다. */}
-        <p className="mt-6 text-[18px] leading-[1.35] text-smoke">{/[.?!…]$/.test(card.shorts[0]) ? card.shorts[0] : `${card.shorts[0]}…`}</p>
+        <p className="mt-4 text-[16px] leading-[1.5] text-eggshell/70">{/[.?!…]$/.test(card.shorts[0]) ? card.shorts[0] : `${card.shorts[0]}…`}</p>
       </div>
+      {/* 빈 가운데를 채우는 큰 주제 글자 — 꾸밈이라 읽지 않는다. */}
+      <span aria-hidden="true" className="pointer-events-none absolute right-6 bottom-16 text-[96px] leading-none font-black tracking-tighter text-eggshell/[0.06] select-none">
+        {CATEGORY_LABELS[card.category]}
+      </span>
       {application && (
-        <p className="mt-8 self-start rounded-pill border border-stone px-3 py-1 text-[13px] text-graphite">
+        <p
+          className={`relative mt-8 self-start rounded-pill px-3 py-1.5 text-[13px] font-medium ${application.state === "open" ? "bg-eggshell text-ink" : "border border-eggshell/30 text-eggshell/85"}`}
+        >
           {application.app.label} {APPLICATION_LABELS[application.state]}
         </p>
       )}

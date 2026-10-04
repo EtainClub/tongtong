@@ -60,10 +60,7 @@ export function Saved() {
 
   return (
     <main id="main" className="mx-auto max-w-xl px-5 pt-6 pb-16">
-      <Link href="/me" className="text-[14px] text-graphite underline-offset-4 hover:underline">
-        ← 내 기록
-      </Link>
-      <h1 className="mt-10 text-[36px] leading-[1.17] font-light tracking-[-0.02em]">저장한 카드</h1>
+      <h1 className="mt-2 text-[28px] leading-tight font-bold tracking-tight">저장한 카드</h1>
 
       {entries.length === 0 ? (
         <p className="mt-10 text-graphite">카드 끝 화면이나 머리의 &lsquo;저장&rsquo;으로 모을 수 있어요. 새 정보가 생기면 여기서 먼저 보여 드려요.</p>

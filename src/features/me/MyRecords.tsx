@@ -109,10 +109,7 @@ export function MyRecords() {
 
   return (
     <main id="main" className="mx-auto max-w-xl px-5 pt-6 pb-16">
-      <Link href="/" className="text-[14px] text-graphite underline-offset-4 hover:underline">
-        ← 피드
-      </Link>
-      <h1 className="mt-10 text-[36px] leading-[1.17] font-light tracking-[-0.02em]">내 기록</h1>
+      <h1 className="mt-2 text-[28px] leading-tight font-bold tracking-tight">내 기록</h1>
 
       {/* 몇 장을 봤는가까지만 센다. "생각이 바뀐 카드" 같은 수는 만들지 않는다 (검토 문서 2.5). */}
       <dl className="stagger mt-8 grid grid-cols-3 gap-2">
@@ -123,25 +120,21 @@ export function MyRecords() {
             ["다시 판단한 카드", summary.revisited],
           ] as const
         ).map(([label, value]) => (
-          <div key={label} className="rounded-card border border-stone p-4">
-            <dt className="text-[13px] leading-tight text-graphite">{label}</dt>
-            <dd className="mt-2 font-mono text-[28px] tabular">{value}</dd>
+          <div key={label} className="rounded-card bg-taupe p-4">
+            <dt className="text-[12px] leading-tight font-medium text-smoke">{label}</dt>
+            <dd className="mt-2 font-mono text-[26px] font-medium text-ink tabular">{value}</dd>
           </div>
         ))}
       </dl>
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <Link href="/me/history" className="rounded-pill border border-stone px-5 py-3 text-center hover:border-graphite">
-          판단 이력
-        </Link>
-        <Link href="/saved" className="rounded-pill border border-stone px-5 py-3 text-center hover:border-graphite">
-          저장한 카드
-        </Link>
-      </div>
-      {PLAN_ENTRY_OPEN && !isYouth && <PlanLink />}
+      <ul className="mt-3 divide-y divide-stone overflow-hidden rounded-card border border-stone">
+        <RowLink href="/me/history" label="판단 이력" />
+        <RowLink href="/saved" label="저장한 카드" meta={String(summary.saved)} />
+        {PLAN_ENTRY_OPEN && !isYouth && <PlanLink />}
+      </ul>
 
       {summary.byTopic.length > 0 && (
         <section aria-labelledby="by-topic" className="mt-12">
-          <h2 id="by-topic" className="text-[18px] font-medium">
+          <h2 id="by-topic" className="text-[18px] font-bold tracking-tight">
             주제별로 따져본 카드
           </h2>
           {/* 판단이 아니라 본 양이라 무채색 막대다. */}
@@ -161,7 +154,7 @@ export function MyRecords() {
 
       <section aria-labelledby="my-situation" className="mt-12 flex items-start justify-between gap-4 border-t border-stone pt-6">
         <div>
-          <h2 id="my-situation" className="text-[18px] font-medium">
+          <h2 id="my-situation" className="text-[18px] font-bold tracking-tight">
             내 상황 · 관심 주제
           </h2>
           <p className="mt-2 text-[15px] text-graphite">
@@ -179,10 +172,10 @@ export function MyRecords() {
         </Link>
       </section>
 
-      <h2 className="mt-12 text-[14px] text-graphite">설정과 기록 관리</h2>
+      <h2 className="mt-12 text-[13px] font-semibold text-smoke">설정과 기록 관리</h2>
 
-      <details className="mt-3 rounded-card border border-stone p-6 sm:p-8">
-        <summary className="cursor-pointer text-[17px]">정책 평가 저장 동의</summary>
+      <details className="mt-3 rounded-card border border-stone p-5">
+        <summary className="disclosure text-[16px] font-semibold">정책 평가 저장 동의</summary>
         <p className="mt-2 text-[15px] text-graphite">
           {isYouth
             ? "청소년의 정책 평가는 이 기기에만 두고 저장하지 않아요. 청년이 되면 동의하고 저장할 수 있어요."
@@ -195,8 +188,8 @@ export function MyRecords() {
         </button>
       </details>
 
-      <details className="mt-2 rounded-card border border-stone p-6 sm:p-8">
-        <summary className="cursor-pointer text-[17px]">기록 지키기</summary>
+      <details className="mt-2 rounded-card border border-stone p-5">
+        <summary className="disclosure text-[16px] font-semibold">기록 지키기</summary>
         {user.isAnonymous ? (
           <>
             <p className="mt-2 text-[15px] text-graphite">
@@ -217,16 +210,16 @@ export function MyRecords() {
         )}
       </details>
 
-      <details className="mt-2 rounded-card border border-stone p-6 sm:p-8">
-        <summary className="cursor-pointer text-[17px]">기록 내려받기</summary>
+      <details className="mt-2 rounded-card border border-stone p-5">
+        <summary className="disclosure text-[16px] font-semibold">기록 내려받기</summary>
         <p className="mt-2 text-[15px] text-graphite">내 프로필, 카드별 판단 기록, 청사진과 그 고친 기록을 JSON 파일로 받아요.</p>
         <button type="button" onClick={() => void download()} className="mt-4 rounded-pill border border-ink px-5 py-2.5 disabled:opacity-40">
           내려받기
         </button>
       </details>
 
-      <details className="mt-2 rounded-card border border-stone p-6 sm:p-8">
-        <summary className="cursor-pointer text-[17px]">기록 지우기</summary>
+      <details className="mt-2 rounded-card border border-stone p-5">
+        <summary className="disclosure text-[16px] font-semibold">기록 지우기</summary>
         <p className="mt-2 text-[15px] text-graphite">판단 기록이나 청사진만 지우거나, 계정까지 지울 수 있어요. 되돌릴 수 없어요.</p>
         <div className="mt-4 flex flex-wrap gap-2">
           <button type="button" disabled={busy} onClick={() => remove("judgments")} className="rounded-pill border border-ink px-5 py-2.5 disabled:opacity-40">
@@ -241,7 +234,7 @@ export function MyRecords() {
         </div>
       </details>
 
-      <p className="mt-10 text-[13px] text-smoke">
+      <p className="mt-6 text-[13px] text-smoke">
         <Link href="/privacy" className="underline underline-offset-4">
           개인정보처리방침
         </Link>
@@ -260,10 +253,22 @@ export function MyRecords() {
 /** 청사진 진입점 (청사진 설계 7.1). 청사진을 구독하므로 진입점이 열렸을 때만 그린다. */
 function PlanLink() {
   const { blueprint } = useActiveBlueprint();
+  return <RowLink href="/plan" label="내 청사진" meta={blueprint ? `REV.${blueprint.rev}` : undefined} />;
+}
+
+/** 목록 한 줄 — 이름, 오른쪽에 부가 정보와 꺾쇠. */
+function RowLink({ href, label, meta }: { href: string; label: string; meta?: string }) {
   return (
-    <Link href="/plan" className="mt-2 flex items-baseline justify-between gap-3 rounded-pill border border-stone px-5 py-3 hover:border-graphite">
-      <span>내 청사진</span>
-      {blueprint && <span className="font-mono text-[13px] text-graphite tabular">REV.{blueprint.rev}</span>}
-    </Link>
+    <li>
+      <Link href={href} className="flex items-center justify-between gap-3 px-5 py-4 transition-colors hover:bg-taupe/60">
+        <span className="text-[15px] font-medium">{label}</span>
+        <span className="flex items-center gap-2 text-[13px] text-smoke">
+          {meta && <span className="font-mono tabular">{meta}</span>}
+          <span aria-hidden="true" className="text-[18px] leading-none text-ash">
+            ›
+          </span>
+        </span>
+      </Link>
+    </li>
   );
 }

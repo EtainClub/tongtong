@@ -116,7 +116,7 @@ export function CardFlow({ card, user, data }: { card: Card; user: User; data: U
     <main id="main" className="mx-auto flex min-h-dvh max-w-xl flex-col px-5 pt-6 pb-16">
       <CardHeader step={stepIndex + 1} total={steps.length} saved={state?.saved ?? false} busy={busy} onToggleSave={session.toggleSave} />
 
-      <p className="mt-10 text-[13px] text-smoke">
+      <p className="mt-6 text-[13px] text-smoke">
         {card.shortTitle} ·{" "}
         <Link href={`/topics/${card.category}`} className="underline underline-offset-4 hover:text-graphite">
           {CATEGORY_LABELS[card.category]}
@@ -131,7 +131,7 @@ export function CardFlow({ card, user, data }: { card: Card; user: User; data: U
 
           {step === "trust" && (
             <section>
-              <blockquote className="text-[28px] leading-tight font-light">“{card.hook}”</blockquote>
+              <blockquote className="text-[26px] leading-tight font-bold tracking-tight">“{card.hook}”</blockquote>
               <p className="mt-6 text-[18px]">이 문장, 얼마나 믿을 만한가요?</p>
               <div className="mt-6">
                 <Scale label="이 문장을 얼마나 믿나요" options={SCALE_LABELS.trust} value={trust} onChange={choose(setTrust)} disabled={busy} />
@@ -179,7 +179,7 @@ export function CardFlow({ card, user, data }: { card: Card; user: User; data: U
               <ConsentPanel busy={busy} onAgree={session.giveConsent} onDecline={() => setOpinionLocalOnly(true)} />
             ) : (
               <section>
-                <p className="text-[24px] leading-tight font-light">자료를 확인했어요. 이 정책을 어떻게 보나요?</p>
+                <p className="text-[22px] leading-snug font-bold tracking-tight">자료를 확인했어요. 이 정책을 어떻게 보나요?</p>
                 {opinionLocalOnly && (
                   <p className="mt-2 text-[14px] text-smoke">{isYouth ? "청소년의 정책 평가는 이 기기에만 두고 저장하지 않아요." : "이번 답은 저장하지 않아요."}</p>
                 )}
@@ -245,7 +245,7 @@ function Summary(props: {
 
   return (
     <section>
-      <p className="tong-pop text-[28px] leading-tight font-light">여기까지 따져봤어요.</p>
+      <p className="tong-pop text-[26px] leading-tight font-bold tracking-tight">여기까지 따져봤어요.</p>
       {rows.length > 0 && (
         <dl className="stagger mt-8 flex flex-col">
           {rows.map(([label, value]) => (

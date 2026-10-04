@@ -139,7 +139,7 @@ function Steps({ user }: { user: User }) {
       <div key={step} className="step-enter">
         {step === 1 && (
           <section aria-labelledby="goal-title">
-            <h1 id="goal-title" className="mt-1 text-[28px] leading-tight font-light">
+            <h1 id="goal-title" className="mt-1 text-[26px] leading-tight font-bold tracking-tight">
               무엇이 되고 싶나요?
             </h1>
             <ul className="mt-6 flex flex-col gap-2">
@@ -188,7 +188,7 @@ function Steps({ user }: { user: User }) {
 
         {step === 2 && (
           <section aria-labelledby="where-title">
-            <h1 id="where-title" className="mt-1 text-[28px] leading-tight font-light">
+            <h1 id="where-title" className="mt-1 text-[26px] leading-tight font-bold tracking-tight">
               지금 어디쯤인가요?
             </h1>
             <div role="radiogroup" aria-label="지금 학적·단계" className="mt-6 flex flex-wrap gap-2">
@@ -260,7 +260,7 @@ function Steps({ user }: { user: User }) {
 
         {step === 3 && preview && (
           <section aria-labelledby="draft-title">
-            <h1 id="draft-title" className="mt-1 text-[28px] leading-tight font-light">
+            <h1 id="draft-title" className="mt-1 text-[26px] leading-tight font-bold tracking-tight">
               초안이에요 — 저장하면 REV.1
             </h1>
             <p className="mt-2 text-[17px]">
@@ -278,7 +278,7 @@ function Steps({ user }: { user: User }) {
 
             {choice?.kind === "path" && choice.path.caveats.length > 0 && (
               <details className="mt-6 border-t border-stone pt-4">
-                <summary className="cursor-pointer text-[15px]">이 경로의 한계</summary>
+                <summary className="disclosure text-[15px] font-semibold">이 경로의 한계</summary>
                 <ul className="mt-4 flex flex-col gap-4">
                   {choice.path.caveats.map((claim) => (
                     <ClaimItem key={claim.id} claim={claim} sources={new Map(choice.path.sources.map((s) => [s.id, s]))} now={now} />

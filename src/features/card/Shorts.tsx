@@ -17,7 +17,7 @@ export function Shorts({ hook, lines, onDone, morphName }: { hook: string; lines
     <section aria-label="15초 요약">
       {/* 피드 카드의 훅이 여기로 옮겨 온다 (features/feed/SwipeDeck). */}
       <ViewTransition name={morphName} share="morph" default="none">
-        <p className="text-[32px] leading-[1.13] font-light tracking-[-0.02em]">{hook}</p>
+        <p className="text-[30px] leading-[1.2] font-bold tracking-tight">{hook}</p>
       </ViewTransition>
 
       {/* 씬 진행은 막대로 보여 준다. 숫자로 쓰면 머리의 단계 표시(01 / 06)와 헷갈린다. */}

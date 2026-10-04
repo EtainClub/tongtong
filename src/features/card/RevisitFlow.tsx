@@ -72,14 +72,14 @@ export function RevisitFlow({ card, user, data }: { card: Card; user: User; data
     <main id="main" className="mx-auto flex min-h-dvh max-w-xl flex-col px-5 pt-6 pb-16">
       <CardHeader step={STEPS.indexOf(step) + 1} total={STEPS.length} saved={state?.saved ?? false} busy={busy} onToggleSave={session.toggleSave} />
 
-      <p className="mt-10 text-[13px] text-smoke">{card.shortTitle} · 다시 판단하기</p>
+      <p className="mt-6 text-[13px] text-smoke">{card.shortTitle} · 다시 판단하기</p>
 
       {/* 근거 칩(원자료 링크)은 어디서 눌러도 원자료 클릭으로 센다. */}
       <div className="mt-4 flex-1" onClickCapture={(event) => (event.target as Element).closest("[data-source-link]") && metrics.event("source_open")}>
         <div key={step} className="step-enter">
           {step === "changes" && (
             <section>
-              <h1 className="text-[28px] leading-tight font-light">
+              <h1 className="text-[26px] leading-tight font-bold tracking-tight">
                 {opened.revisions.length > 0 ? "지난번 판단 뒤, 새 정보가 생겼어요." : "지난번 판단 뒤, 바뀐 내용은 없어요."}
               </h1>
               {opened.lastAt && (
@@ -111,7 +111,7 @@ export function RevisitFlow({ card, user, data }: { card: Card; user: User; data
               )}
 
               <details className="mt-10 rounded-sm border border-stone">
-                <summary className="cursor-pointer px-4 py-3 text-[15px]">지금의 사실 다시 보기</summary>
+                <summary className="disclosure px-4 py-3 text-[15px] font-semibold">지금의 사실 다시 보기</summary>
                 <div className="px-4 pt-2 pb-6">
                   <Reveal card={card} now={now} />
                 </div>
@@ -132,7 +132,7 @@ export function RevisitFlow({ card, user, data }: { card: Card; user: User; data
               <ConsentPanel busy={busy} onAgree={session.giveConsent} onDecline={() => setOpinionLocalOnly(true)} />
             ) : (
               <section>
-                <p className="text-[24px] leading-tight font-light">지금은 이 정책을 어떻게 보나요?</p>
+                <p className="text-[22px] leading-snug font-bold tracking-tight">지금은 이 정책을 어떻게 보나요?</p>
                 {opinionLocalOnly && <p className="mt-2 text-[14px] text-smoke">이번 답은 저장하지 않아요.</p>}
                 <div className="mt-6">
                   <Scale
@@ -166,7 +166,7 @@ export function RevisitFlow({ card, user, data }: { card: Card; user: User; data
 
           {step === "compare" && opened.first && opinion !== undefined && recordedAt && (
             <section>
-              <p className="text-[28px] leading-tight font-light">처음과 지금을 나란히 놓았어요.</p>
+              <p className="text-[26px] leading-tight font-bold tracking-tight">처음과 지금을 나란히 놓았어요.</p>
               <Compare before={opened.first} after={{ value: opinion, at: recordedAt, cardVersion: cardVersion(card) }} />
               {opinionLocalOnly && <p className="mt-3 text-[14px] text-smoke">이번 판단은 저장하지 않았어요.</p>}
               <div className="mt-10 flex flex-col gap-2">

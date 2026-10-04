@@ -32,13 +32,13 @@ export function PolicyView({ policy, hasCard }: { policy: Policy; hasCard: boole
       <Link href="/" className="text-[14px] text-graphite underline-offset-4 hover:underline">
         ← 피드
       </Link>
-      <p className="mt-10 text-[13px] text-smoke">
+      <p className="mt-6 text-[13px] text-smoke">
         정책 ·{" "}
         <Link href={`/topics/${policy.category}`} className="underline underline-offset-4 hover:text-graphite">
           {CATEGORY_LABELS[policy.category]}
         </Link>
       </p>
-      <h1 className="mt-1 text-[36px] leading-[1.17] font-light tracking-[-0.02em]">{policy.name}</h1>
+      <h1 className="mt-1 text-[28px] leading-tight font-bold tracking-tight">{policy.name}</h1>
       {policy.summary && <p className="mt-3 text-[17px] leading-relaxed">{policy.summary}</p>}
       <p className="mt-4 text-[14px] text-smoke">정책은 해마다 바뀌어요. 신청 전에 공식 공고로 다시 확인하세요. 대상인지는 신청 기관이 정해요.</p>
 
@@ -64,7 +64,7 @@ export function PolicyView({ policy, hasCard }: { policy: Policy; hasCard: boole
       <ApplicationBox applications={policy.policy.applications} now={now} />
 
       <section aria-labelledby="facts-title" className="mt-10">
-        <h2 id="facts-title" className="text-[20px] font-medium">
+        <h2 id="facts-title" className="text-[19px] font-bold tracking-tight">
           무엇을 지원하나
         </h2>
         <ul className="stagger mt-4 flex flex-col gap-4">
@@ -78,7 +78,7 @@ export function PolicyView({ policy, hasCard }: { policy: Policy; hasCard: boole
 
       {policy.counterpoints.length > 0 && (
         <section aria-labelledby="counter-title" className="mt-10">
-          <h2 id="counter-title" className="text-[20px] font-medium">
+          <h2 id="counter-title" className="text-[19px] font-bold tracking-tight">
             비판과 한계
           </h2>
           <ul className="stagger mt-4 flex flex-col gap-4">
@@ -90,7 +90,7 @@ export function PolicyView({ policy, hasCard }: { policy: Policy; hasCard: boole
       )}
 
       <section aria-labelledby="sources-title" className="mt-10">
-        <h2 id="sources-title" className="text-[20px] font-medium">
+        <h2 id="sources-title" className="text-[19px] font-bold tracking-tight">
           원자료
         </h2>
         <ul className="mt-4 flex flex-col">
@@ -137,7 +137,7 @@ function PlanningFacts({ planning }: { planning: Planning }) {
   ];
   return (
     <section aria-labelledby="planning-title" className="mt-10">
-      <h2 id="planning-title" className="text-[20px] font-medium">
+      <h2 id="planning-title" className="text-[19px] font-bold tracking-tight">
         계획할 때 볼 것
       </h2>
       <dl className="mt-4 flex flex-col">

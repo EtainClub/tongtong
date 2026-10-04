@@ -29,7 +29,7 @@ export function Sheet({ open, title, onClose, children }: { open: boolean; title
       className="sheet m-0 mt-auto max-h-[85dvh] w-full max-w-none overflow-y-auto rounded-t-card-lg bg-eggshell p-0 text-ink backdrop:bg-ink/30 sm:m-auto sm:max-w-xl sm:rounded-card-lg"
     >
       <header className="sticky top-0 flex items-center justify-between border-b border-stone bg-eggshell px-5 py-4">
-        <h2 id={titleId} className="text-[18px] font-medium">
+        <h2 id={titleId} className="text-[18px] font-bold tracking-tight">
           {title}
         </h2>
         <button type="button" onClick={() => ref.current?.close()} className="rounded-pill border border-stone px-4 py-1.5 text-[14px] hover:border-graphite">

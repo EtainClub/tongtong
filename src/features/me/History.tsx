@@ -48,7 +48,7 @@ export function History() {
       <Link href="/me" className="text-[14px] text-graphite underline-offset-4 hover:underline">
         ← 내 기록
       </Link>
-      <h1 className="mt-10 text-[36px] leading-[1.17] font-light tracking-[-0.02em]">판단 이력</h1>
+      <h1 className="mt-6 text-[28px] leading-tight font-bold tracking-tight">판단 이력</h1>
       <p className="mt-3 text-[15px] text-graphite">무엇을 언제 골랐는지 그대로 남겨요. 바뀐 것도, 그대로인 것도 같은 기록이에요.</p>
       <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-smoke">
         <span className="flex items-center gap-1.5">
@@ -66,7 +66,7 @@ export function History() {
         <div className="stagger mt-12 flex flex-col gap-12">
           {entries.map(({ card, judgments }) => (
             <section key={card.id} aria-labelledby={`history-${card.id}`}>
-              <h2 id={`history-${card.id}`} className="text-[18px] font-medium">
+              <h2 id={`history-${card.id}`} className="text-[18px] font-bold tracking-tight">
                 <Link href={`/card/${card.id}`} className="underline-offset-4 hover:underline">
                   {card.shortTitle}
                 </Link>

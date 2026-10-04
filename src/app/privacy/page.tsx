@@ -20,7 +20,7 @@ export default function PrivacyPage() {
       <Link href="/" className="text-[14px] text-graphite underline-offset-4 hover:underline">
         ← 피드
       </Link>
-      <h1 className="mt-10 text-[36px] leading-[1.17] font-light tracking-[-0.02em]">개인정보처리방침</h1>
+      <h1 className="mt-6 text-[28px] leading-tight font-bold tracking-tight">개인정보처리방침</h1>
       <p className="mt-3 text-[14px] text-smoke">시행일 {EFFECTIVE}</p>
 
       <p className="mt-8 text-[16px] leading-relaxed">
@@ -122,7 +122,7 @@ export default function PrivacyPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mt-12">
-      <h2 className="text-[18px] font-medium">{title}</h2>
+      <h2 className="text-[18px] font-bold tracking-tight">{title}</h2>
       <div className="mt-3">{children}</div>
     </section>
   );

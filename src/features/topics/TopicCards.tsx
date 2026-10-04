@@ -35,8 +35,8 @@ export function TopicCards({ topic }: { topic: Card["category"] }) {
       <Link href="/" className="text-[14px] text-graphite underline-offset-4 hover:underline">
         ← 피드
       </Link>
-      <p className="mt-10 text-[13px] text-smoke">주제</p>
-      <h1 className="mt-1 text-[36px] leading-[1.17] font-light tracking-[-0.02em]">{CATEGORY_LABELS[topic]}</h1>
+      <p className="mt-6 text-[13px] text-smoke">주제</p>
+      <h1 className="mt-1 text-[28px] leading-tight font-bold tracking-tight">{CATEGORY_LABELS[topic]}</h1>
       <p className="mt-2 text-[15px] text-graphite">{CATEGORY_DESCRIPTIONS[topic]}</p>
 
       {cards.length === 0 ? (
@@ -52,7 +52,7 @@ export function TopicCards({ topic }: { topic: Card["category"] }) {
                     {card.shortTitle}
                     {done && <span className="rounded-pill border border-stone px-2 py-0.5 text-[11px] text-graphite">따져봄</span>}
                   </span>
-                  <span className="mt-2 block text-[20px] leading-snug font-light">{card.hook}</span>
+                  <span className="mt-2 block text-[18px] leading-snug font-semibold tracking-tight">{card.hook}</span>
                   {application && (
                     <span className="mt-3 inline-block rounded-pill border border-stone px-3 py-0.5 text-[12px] text-graphite">
                       {application.app.label} {APPLICATION_LABELS[application.state]}
@@ -68,7 +68,7 @@ export function TopicCards({ topic }: { topic: Card["category"] }) {
       {/* 카드가 아직 없는 정책 항목 (청사진 설계 2.4) — 따져보기 없이 사실만 있는 정책 페이지로 간다. */}
       {entries.length > 0 && (
         <section aria-labelledby="entries-title" className="mt-12">
-          <h2 id="entries-title" className="text-[18px] font-medium">
+          <h2 id="entries-title" className="text-[18px] font-bold tracking-tight">
             카드가 아직 없는 정책
           </h2>
           <p className="mt-1 text-[14px] text-smoke">따져보기 없이, 무엇을 지원하는지와 원자료만 있어요.</p>

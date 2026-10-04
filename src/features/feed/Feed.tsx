@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { CARDS } from "@/content/cards";
-import { PLAN_ENTRY_OPEN } from "@/content/paths";
 import { FeedDone } from "@/features/feed/FeedDone";
 import { SwipeDeck, type SwipeCommand, type SwipeDirection } from "@/features/feed/SwipeDeck";
 import { revisitLabel } from "@/features/labels";
@@ -98,26 +97,13 @@ export function Feed() {
   const hasPassed = [...data.states.values()].some((state) => state.passedAt);
 
   return (
-    <main id="main" className="mx-auto flex min-h-[calc(100dvh-var(--bottom-nav,0px))] max-w-xl flex-col px-5 pt-6 pb-10">
-      <header className="flex items-center justify-between">
-        <h1 className="text-[20px] font-light tracking-[-0.02em]">통통</h1>
-        {/* 작은 화면은 하단 탭(BottomNav)이 같은 일을 한다. */}
-        <nav className="hidden gap-2 sm:flex">
-          {/* 공개 견본이 생기면 연다 (청사진 설계 7.1, 부록 A-12). 청소년에게는 없다. */}
-          {PLAN_ENTRY_OPEN && data.profile.audienceType === "young_adult" && (
-            <Link href="/plan" className="rounded-pill border border-stone px-4 py-1.5 text-[14px] hover:border-graphite">
-              청사진
-            </Link>
-          )}
-          <Link href="/me" className="rounded-pill border border-stone px-4 py-1.5 text-[14px] hover:border-graphite">
-            내 기록
-          </Link>
-        </nav>
-      </header>
+    <main id="main" className="mx-auto flex min-h-[calc(100dvh-var(--top-bar,0px)-var(--bottom-nav,0px))] max-w-xl flex-col px-5 pt-4 pb-6">
+      {/* 이름·주요 화면 링크는 상단 바(TopBar)와 하단 탭(BottomNav)에 있다. */}
+      <h1 className="sr-only">통통 피드</h1>
 
       {revisits.length > 0 && (
-        <section aria-labelledby="revisit-title" className="mt-6">
-          <h2 id="revisit-title" className="text-[14px] text-graphite">
+        <section aria-labelledby="revisit-title" className="mt-2">
+          <h2 id="revisit-title" className="text-[14px] font-semibold text-ink">
             다시 볼 카드
           </h2>
           <ul className="mt-2 flex flex-wrap gap-2">
@@ -145,10 +131,10 @@ export function Feed() {
           />
 
           <div className="mt-6 grid grid-cols-3 gap-2">
-            <button type="button" onClick={() => send("left")} className="rounded-pill border border-stone px-3 py-4">
+            <button type="button" onClick={() => send("left")} className="rounded-pill border border-stone bg-eggshell px-3 py-4 font-medium hover:border-graphite">
               패스
             </button>
-            <button type="button" onClick={() => send("up")} className="rounded-pill border border-stone px-3 py-4">
+            <button type="button" onClick={() => send("up")} className="rounded-pill border border-stone bg-eggshell px-3 py-4 font-medium hover:border-graphite">
               보류
             </button>
             <Link
@@ -159,7 +145,7 @@ export function Feed() {
                 event.preventDefault();
                 send("right");
               }}
-              className="rounded-pill bg-ink px-3 py-4 text-center text-eggshell"
+              className="rounded-pill bg-ink px-3 py-4 text-center font-semibold text-eggshell"
             >
               보기
             </Link>

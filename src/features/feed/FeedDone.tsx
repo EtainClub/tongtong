@@ -37,7 +37,7 @@ export function FeedDone({ audience, cards, states, now }: { audience: Audience;
 
   return (
     <section className="mt-12">
-      <p className="text-[24px] leading-tight font-light">지금 있는 카드를 모두 살펴봤어요.</p>
+      <p className="text-[22px] leading-snug font-bold tracking-tight">지금 있는 카드를 모두 살펴봤어요.</p>
       <p className="mt-2 text-graphite">
         카드 <span className="font-mono tabular">{cards.length}</span>장 가운데 <span className="font-mono tabular">{completed}</span>장을 따져봤어요. 새 카드는 준비하고 있어요 — 올라오면 이 화면에 바로 나타나요.
       </p>
@@ -52,7 +52,7 @@ export function FeedDone({ audience, cards, states, now }: { audience: Audience;
 
       {schedule.length > 0 && (
         <div className="mt-10">
-          <h2 className="text-[18px] font-medium">따져봤거나 저장한 정책의 신청 일정</h2>
+          <h2 className="text-[18px] font-bold tracking-tight">따져봤거나 저장한 정책의 신청 일정</h2>
           <ul className="mt-3 flex flex-col">
             {schedule.map(({ card, current }) => (
               <li key={card.id} className="border-t border-stone">
@@ -74,7 +74,7 @@ export function FeedDone({ audience, cards, states, now }: { audience: Audience;
 
       {passed.length > 0 && (
         <div className="mt-10">
-          <h2 className="text-[18px] font-medium">넘긴 카드</h2>
+          <h2 className="text-[18px] font-bold tracking-tight">넘긴 카드</h2>
           <p className="mt-1 text-[14px] text-graphite">넘긴 카드는 {PASS_COOLDOWN_DAYS}일 동안 피드에 나오지 않아요. 지금 다시 볼 수 있어요.</p>
           <ul className="mt-3 flex flex-wrap gap-2">
             {passed.map((card) => (
@@ -90,7 +90,7 @@ export function FeedDone({ audience, cards, states, now }: { audience: Audience;
 
       {policies.length > 0 && (
         <div className="mt-10">
-          <h2 className="text-[18px] font-medium">카드는 없지만 살펴볼 정책</h2>
+          <h2 className="text-[18px] font-bold tracking-tight">카드는 없지만 살펴볼 정책</h2>
           <p className="mt-1 text-[14px] text-graphite">따져보기는 없고, 원문으로 확인한 사실과 신청 정보만 정리했어요.</p>
           <ul className="mt-3 flex flex-col">
             {policies.map((policy) => (
