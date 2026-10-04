@@ -3,13 +3,13 @@ import type { PolicyInput } from "../schema";
 /*
  * 청년창업중소기업 세액감면 (조세특례제한법 6조) — 정책 항목(사실). 카드 없음.
  *
- * 청사진 창업 경로의 창업 초기 칸 (청사진 설계 9.3). 초안 — claim은 원문 대조 전이다.
+ * 청사진 창업 경로의 창업 초기 칸 (청사진 설계 9.3). 2026-10-04 원문 대조(docs/source-check-2026-10-04.md) 뒤 공개.
  * 청년 요건(대표자 나이 등)은 대통령령에 있고, 2026년 이후 창업의 감면율은 법이 따로 정한다 —
  * 둘 다 원문(시행령·법 6조 해당 항)을 열어 숫자를 확인하기 전에는 적지 않는다.
  */
 export const youthStartupTaxRelief = {
   id: "youth-startup-tax-relief",
-  publishStatus: "draft",
+  publishStatus: "published",
 
   audience: ["young_adult"],
   category: "startup",
@@ -33,28 +33,28 @@ export const youthStartupTaxRelief = {
       id: "period",
       text: "창업 후 처음 소득이 생긴 과세연도와 그다음 과세연도부터 4년 안에 끝나는 과세연도까지, 모두 5년 동안 법인세나 소득세를 감면한다.",
       assertionType: "FACT",
-      verified: false,
+      verified: true,
       sourceIds: ["law-tax-6"],
     },
     {
       id: "rate-2025",
       text: "2025년 12월 31일 이전에 창업한 청년창업중소기업은 수도권과밀억제권역 밖이면 세액의 100%, 안이면 50%를 감면받는다.",
       assertionType: "FACT",
-      verified: false,
+      verified: true,
       sourceIds: ["law-tax-6"],
     },
     {
       id: "rate-2026",
       text: "2026년 1월 1일 이후에 창업한 경우에는 2025년까지와 다른 감면 규정이 따로 적용된다.",
       assertionType: "FACT",
-      verified: false,
+      verified: true,
       sourceIds: ["law-tax-6"],
     },
     {
       id: "youth-rule",
       text: "어떤 기업이 청년창업중소기업인지(대표자 나이 등)는 대통령령으로 정한다.",
       assertionType: "FACT",
-      verified: false,
+      verified: true,
       sourceIds: ["law-tax-6"],
     },
   ],
@@ -69,5 +69,5 @@ export const youthStartupTaxRelief = {
   },
 
   revisions: [{ version: 1, date: "2026-10-01", material: true, summary: "첫 작성", claimIds: [] }],
-  reviewedAt: "2026-10-01",
+  reviewedAt: "2026-10-04",
 } satisfies PolicyInput;

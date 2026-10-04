@@ -19,6 +19,32 @@ export function endsBefore(placement: Pick<Placement, "from">, policy: Policy | 
   return Boolean(endsAt && monthIndex(placement.from) > monthIndex(endsAt));
 }
 
+/**
+ * 지난 신청 회차가 열렸던 달(1–12) — 해마다·회차별로 다시 열리는 항목만 (청사진 설계 5.3).
+ * 새 사실을 만들지 않는다: 이미 있는 회차의 날짜를 해마다 되풀이한 창일 뿐이다.
+ */
+export function seasonMonths(policy: Policy | undefined): number[] {
+  const kind = policy?.planning?.recurrence?.kind;
+  if (!policy || (kind !== "annual" && kind !== "rounds")) return [];
+  const months = new Set<number>();
+  for (const app of policy.policy.applications) {
+    const start = monthIndex(monthOf(app.startAt));
+    const end = Math.min(monthIndex(monthOf(app.endAt)), start + 11);
+    for (let i = start; i <= end; i++) months.add((i % 12) + 1);
+  }
+  return [...months].sort((a, b) => a - b);
+}
+
+/**
+ * "예상 · 시기 확인" — 다시 열린다는 근거는 있지만, 시작 달이 지난 회차들이 열렸던 달 밖이다.
+ * 예상 배치에만 쓴다. 지난 회차가 없으면 말하지 않는다(창을 모른다).
+ */
+export function offSeason(placement: Pick<Placement, "from" | "to">, policy: Policy | undefined): boolean {
+  if (certaintyOf(placement, policy) !== "expected") return false;
+  const months = seasonMonths(policy);
+  return months.length > 0 && !months.includes(Number(placement.from.slice(5, 7)));
+}
+
 export function certaintyOf(placement: Pick<Placement, "from" | "to">, policy: Policy | undefined): Certainty {
   if (!policy) return "undetermined";
   const ended = policy.policy.history.some((event) => event.kind === "ended" && monthIndex(event.date.slice(0, 7)) <= monthIndex(placement.from));

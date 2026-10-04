@@ -5,6 +5,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/firebase/auth";
 import { UserDataProvider } from "@/lib/firebase/user-data";
 import { VisitBeacon } from "@/features/metrics/VisitBeacon";
+import { BottomNav } from "@/features/ui/BottomNav";
 import { SITE_URL } from "@/lib/site";
 
 /* 본문은 Pretendard(globals.css에서 CDN), 수치는 IBM Plex Mono — 잼통과 같다. */
@@ -36,7 +37,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         {/* 익명 로그인은 화면 전체가 공유한다 — 피드·카드·내 기록이 같은 사용자를 쓴다. */}
         <AuthProvider>
-          <UserDataProvider>{children}</UserDataProvider>
+          <UserDataProvider>
+            {children}
+            <BottomNav />
+          </UserDataProvider>
           <VisitBeacon />
         </AuthProvider>
       </body>

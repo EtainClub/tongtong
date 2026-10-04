@@ -56,9 +56,13 @@ describe("validatePath", () => {
   });
 
   it("공개하려면 모든 칸의 항목이 공개이고 한계가 검증되어야 한다", () => {
-    const errors = broken((p) => {
-      p.publishStatus = "published";
-    });
+    // 실제 콘텐츠의 공개 상태와 상관없이 — 항목 하나를 초안으로, 한계 하나를 검증 전으로 만든다.
+    const withDraft = new Map(policies);
+    withDraft.set("national-scholarship", { ...policies.get("national-scholarship")!, publishStatus: "draft" });
+    const path = phd();
+    path.publishStatus = "published";
+    path.caveats = path.caveats.map((c) => (c.id === "bk21-ends" ? { ...c, verified: false } : c));
+    const errors = validatePath(path, withDraft);
     expect(errors).toContainEqual(expect.stringContaining("national-scholarship가 초안이다"));
     expect(errors).toContainEqual(expect.stringContaining('caveat "bk21-ends"가 검증 전이다'));
     expect(broken((p) => ((p.publishStatus = "published"), (p.caveats = [])))).toContainEqual(expect.stringContaining("caveats"));

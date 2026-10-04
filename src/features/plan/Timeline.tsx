@@ -2,8 +2,9 @@
 
 import { findCard } from "@/content/cards";
 import { POLICIES } from "@/content/policies";
+import type { Policy } from "@/content/schema";
 import { CERTAINTY_LABELS, PLACEMENT_ROLE_LABELS, PLACEMENT_STATUS_LABELS } from "@/features/labels";
-import { certaintyOf, type Certainty } from "@/lib/blueprint/certainty";
+import { certaintyOf, offSeason, type Certainty } from "@/lib/blueprint/certainty";
 import type { Blueprint, Milestone, Placement } from "@/lib/blueprint/model";
 import { halfLabel } from "@/lib/blueprint/month";
 import { timelineBands } from "@/lib/blueprint/timeline";
@@ -21,6 +22,21 @@ export const policyName = (policyId: string) => policyById.get(policyId)?.name ?
 export const findPlanPolicy = (policyId: string) => policyById.get(policyId);
 export const formatMonth = (ym: string) => ym.replace("-", ".");
 export const formatPeriod = (p: Pick<Placement, "from" | "to">) => (p.to && p.to !== p.from ? `${formatMonth(p.from)}–${formatMonth(p.to)}` : formatMonth(p.from));
+
+/** 확실성 라벨. 예상인데 지난 회차의 달과 어긋나면 "예상 · 시기 확인" (청사진 설계 5.3). */
+export const certaintyLabel = (placement: Pick<Placement, "from" | "to">, policy: Policy | undefined) =>
+  offSeason(placement, policy) ? `${CERTAINTY_LABELS.expected} · 시기 확인` : CERTAINTY_LABELS[certaintyOf(placement, policy)];
+
+/** 지난 회차가 열렸던 달 — "11–12월", "3월 · 9월". 이어지는 달은 묶는다. */
+export function seasonText(months: readonly number[]): string {
+  const runs: [number, number][] = [];
+  for (const m of months) {
+    const last = runs[runs.length - 1];
+    if (last && last[1] === m - 1) last[1] = m;
+    else runs.push([m, m]);
+  }
+  return runs.map(([a, b]) => (a === b ? `${a}월` : `${a}–${b}월`)).join(" · ");
+}
 
 const LINE: Record<Certainty, string> = {
   confirmed: "border-ink",
@@ -105,7 +121,7 @@ function PlacementRow({ placement, onClick }: { placement: Placement; onClick?: 
         </span>
         <span className="mt-0.5 block text-[13px] text-smoke">
           <span className="font-mono tabular">{formatPeriod(placement)}</span> · {PLACEMENT_ROLE_LABELS[placement.role]} ·{" "}
-          <span className={CERTAINTY_TEXT[certainty]}>{CERTAINTY_LABELS[certainty]}</span>
+          <span className={CERTAINTY_TEXT[certainty]}>{certaintyLabel(placement, policy)}</span>
         </span>
       </span>
       <span className="shrink-0 text-[13px] text-graphite">{PLACEMENT_STATUS_LABELS[placement.status]}</span>

@@ -7,7 +7,7 @@ import type { PolicyInput } from "../schema";
  */
 export const youthHousingDreamAccount = {
   id: "youth-housing-dream-account",
-  publishStatus: "draft",
+  publishStatus: "published",
 
   audience: ["young_adult"],
   category: "housing",

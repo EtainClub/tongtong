@@ -84,6 +84,17 @@ body {
   overflow-wrap: anywhere;
 }
 
+/*
+ * 모바일 하단 탭(BottomNav)의 높이. 탭이 그려진 화면에서만 값이 생긴다 — 본문이 탭 아래로 숨지 않게
+ * body를 띄우고, 화면 아래에 붙는 알림(sticky bottom)도 이 값만큼 올린다.
+ */
+@media (width < 40rem) {
+  body:has([data-bottom-nav]) {
+    --bottom-nav: calc(3.5rem + env(safe-area-inset-bottom));
+    padding-bottom: var(--bottom-nav);
+  }
+}
+
 /* 고정폭은 숫자에만 — 한글 라벨에 걸면 자간이 벌어진다 (잼통 "수치는 mono"). */
 
 /* 숫자는 표 정렬. */

@@ -7,7 +7,7 @@ import type { PolicyInput } from "../schema";
  */
 export const youthChallenge = {
   id: "youth-challenge",
-  publishStatus: "draft",
+  publishStatus: "published",
 
   audience: ["young_adult"],
   category: "employment",

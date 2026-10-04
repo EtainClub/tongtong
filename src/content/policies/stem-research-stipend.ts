@@ -3,13 +3,13 @@ import type { PolicyInput } from "../schema";
 /*
  * 이공계 연구생활장려금 (한국형 스타이펜드) — 정책 항목(사실). 카드 없음.
  *
- * 청사진 박사 경로의 대학원 생활비 칸 (청사진 설계 9.3). 초안 — claim은 원문 대조 전이다.
+ * 청사진 박사 경로의 대학원 생활비 칸 (청사진 설계 9.3). 2026-10-04 원문 대조(docs/source-check-2026-10-04.md) 뒤 공개.
  * 기준금액은 "더 주는 돈"이 아니라 최저 보장액이다 — floor claim이 그 차이를 적는다.
  * 2026년 참여 대학 수는 보도 자료다. 정부 원문으로 바꿀 수 있으면 바꾼다.
  */
 export const stemResearchStipend = {
   id: "stem-research-stipend",
-  publishStatus: "draft",
+  publishStatus: "published",
 
   audience: ["young_adult"],
   category: "education",
@@ -52,35 +52,35 @@ export const stemResearchStipend = {
       id: "base",
       text: "참여 대학의 이공계 대학원생에게 매달 기준금액 이상을 보장한다. 기준금액은 석사과정 월 80만 원, 박사과정 월 110만 원이다.",
       assertionType: "FACT",
-      verified: false,
+      verified: true,
       sourceIds: ["korea-2025-07-01"],
     },
     {
       id: "floor",
       text: "따로 더 주는 돈이 아니다. 산학협력단이 주던 R&D 인건비 같은 학생지원금과 합쳐 최저 지급액을 보장하고, 대학별로 모자라는 만큼을 정부가 지원한다.",
       assertionType: "FACT",
-      verified: false,
+      verified: true,
       sourceIds: ["korea-2025-02-11"],
     },
     {
       id: "who",
       text: "참여 요건을 갖춘 대학에서 연구 활동 중인 이공계 전일제 대학원생이 대상이다.",
       assertionType: "FACT",
-      verified: false,
+      verified: true,
       sourceIds: ["korea-2025-02-11"],
     },
     {
       id: "scale-2026",
       text: "2026년 하반기에 5개 대학이 새로 참여해 참여 대학은 48곳, 대상 대학원생은 약 5만 5천 명이 됐다.",
       assertionType: "FACT",
-      verified: false,
+      verified: true,
       sourceIds: ["etoday-2026-09-03"],
     },
     {
       id: "period",
       text: "2025년부터 2033년까지 9년간 모두 9,790억 원을 들인다.",
       assertionType: "FACT",
-      verified: false,
+      verified: true,
       sourceIds: ["korea-2025-07-01"],
     },
   ],
@@ -99,5 +99,5 @@ export const stemResearchStipend = {
   },
 
   revisions: [{ version: 1, date: "2026-10-01", material: true, summary: "첫 작성", claimIds: [] }],
-  reviewedAt: "2026-10-01",
+  reviewedAt: "2026-10-04",
 } satisfies PolicyInput;

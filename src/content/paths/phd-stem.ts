@@ -5,11 +5,11 @@ import type { PathInput } from "../path-schema";
  *
  * 학부 3학년(0개월) → 석사 입학(24) → 박사 진학(48) → 박사 학위(96)를 가정한다. 석·박사 기간은 학교마다 다르다.
  * 칸의 why는 편집자 설명이다 — 사실은 각 정책 항목에 있다.
- * 초안 — 칸의 항목 대부분과 caveat가 원문 대조 전이다. 공개하려면 모든 칸의 항목이 공개여야 한다(validatePath).
+ * 2026-10-04 공개 — 모든 칸의 항목이 공개 항목이다(validatePath가 확인한다).
  */
 export const phdStem = {
   id: "phd-stem",
-  publishStatus: "draft",
+  publishStatus: "published",
   goalKind: "degree",
   title: "이공계 박사 진학 — 학부 3학년부터",
   summary: "학부 등록금부터 석·박사 기간 생활비까지, 박사 학위를 받을 때까지 쓸 수 있는 정책을 순서대로 놓았어요.",
@@ -38,14 +38,14 @@ export const phdStem = {
       id: "bk21-ends",
       text: "4단계 BK21 사업 기간은 2027년 8월까지다. 박사 과정 중간에 끝날 수 있어, 그 뒤 칸은 후속 사업이 생겨야 쓸 수 있다.",
       assertionType: "INTERPRETATION",
-      verified: false,
+      verified: true,
       sourceIds: ["nrf-bk21four"],
     },
     {
       id: "stipend-floor",
       text: "연구생활장려금 기준금액은 따로 더 받는 돈이 아니라 R&D 인건비 등과 합친 최저 보장액이고, 참여 대학의 전일제 대학원생만 대상이다.",
       assertionType: "FACT",
-      verified: false,
+      verified: true,
       sourceIds: ["korea-2025-02-11"],
     },
   ],
@@ -70,5 +70,5 @@ export const phdStem = {
   ],
 
   revisions: [{ version: 1, date: "2026-10-01", material: true, summary: "첫 작성", claimIds: [] }],
-  reviewedAt: "2026-10-01",
+  reviewedAt: "2026-10-04",
 } satisfies PathInput;

@@ -43,7 +43,7 @@ export const RAW_POLICIES: unknown[] = [
   aiLearningMaterials,
   teenCultureNuri,
   outOfSchoolYouth,
-  // 카드 없는 항목 — 청사진 박사·창업 경로 (청사진 설계 9.3, 2026-10-01). 원문 대조 전 초안.
+  // 카드 없는 항목 — 청사진 박사·창업 경로 (청사진 설계 9.3, 2026-10-01 작성, 2026-10-04 원문 대조 뒤 공개).
   nationalScholarship,
   incomeContingentLoan,
   stemResearchStipend,

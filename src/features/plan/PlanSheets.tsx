@@ -9,12 +9,12 @@ import { POLICIES } from "@/content/policies";
 import { PlacementRole, PlanStage, type Policy } from "@/content/schema";
 import { ApplicationBox } from "@/features/card/Reveal";
 import { primaryButton } from "@/features/card/session";
-import { CERTAINTY_LABELS, PLACEMENT_ROLE_LABELS, PLACEMENT_STATUS_LABELS, PLAN_STAGE_LABELS } from "@/features/labels";
+import { PLACEMENT_ROLE_LABELS, PLACEMENT_STATUS_LABELS, PLAN_STAGE_LABELS, RECURRENCE_LABELS } from "@/features/labels";
 import { Chip } from "@/features/plan/PlanNew";
 import { ageText } from "@/features/policy/PolicyView";
-import { formatMonth, formatPeriod, policyName } from "@/features/plan/Timeline";
+import { certaintyLabel, formatMonth, formatPeriod, policyName, seasonText } from "@/features/plan/Timeline";
 import { lastPlacedYear, type BlueprintOp } from "@/lib/blueprint/apply";
-import { certaintyOf, endsBefore } from "@/lib/blueprint/certainty";
+import { certaintyOf, endsBefore, offSeason, seasonMonths } from "@/lib/blueprint/certainty";
 import { ageRangeAt, blueprintStageAt } from "@/lib/blueprint/check";
 import { MAX_HORIZON_YEARS, STATUS_TRANSITIONS, type Blueprint, type Milestone, type Placement } from "@/lib/blueprint/model";
 import { addMonths, monthIndex } from "@/lib/blueprint/month";
@@ -68,7 +68,7 @@ export function PlacementDetail({ blueprint, placement, now, busy, onOps }: Shee
           {policy?.planning?.repayable && <span className="ml-2 text-[14px] text-graphite">갚아야 해요</span>}
         </p>
         <p className="mt-1 text-[14px] text-graphite">
-          <span className="font-mono tabular">{formatPeriod(placement)}</span> · {PLACEMENT_ROLE_LABELS[placement.role]} · {CERTAINTY_LABELS[certainty]}
+          <span className="font-mono tabular">{formatPeriod(placement)}</span> · {PLACEMENT_ROLE_LABELS[placement.role]} · {certaintyLabel(placement, policy)}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           {policy && (
@@ -98,7 +98,9 @@ export function PlacementDetail({ blueprint, placement, now, busy, onOps }: Shee
           : endsBefore(placement, policy) && ends
             ? `이 사업은 ${formatMonth(ends.month)}까지로 되어 있어요 — 그 뒤에는 이어질지 알 수 없어요.`
             : certainty === "expected"
-              ? "다시 열린다는 근거로 놓은 예상 시점이에요. 공식 공고로 확인하세요."
+              ? offSeason(placement, policy)
+                ? seasonNote(placement.from, policy)
+                : "다시 열린다는 근거로 놓은 예상 시점이에요. 공식 공고로 확인하세요."
               : "이 시점에 열린다는 근거가 아직 없어요. 공식 공고로 확인하세요."}
       </p>
       {policy && <ApplicationBox applications={policy.policy.applications} now={now} />}
@@ -196,6 +198,17 @@ export function PlacementDetail({ blueprint, placement, now, busy, onOps }: Shee
 
 // ── 정책 넣기 ──
 
+/** 시작 달이 지난 회차들의 달과 어긋날 때의 설명 (청사진 설계 5.3). */
+function seasonNote(from: string, policy: Policy | undefined): string {
+  return `다시 열린다는 근거는 있지만, 지난 신청은 ${seasonText(seasonMonths(policy))}에 열렸어요. ${Number(from.slice(5, 7))}월에는 신청할 수 없을 수 있어요 — 공식 공고로 시기를 확인하세요.`;
+}
+
+/** 이 항목이 다시 열린다는 근거 — "+ 정책 넣기" 목록의 확실성 단서 (7.6). 시점을 고르기 전이라 확정·예상을 말하지 않는다. */
+function recurrenceText(policy: Policy): string {
+  const kind = policy.planning?.recurrence?.kind;
+  return kind ? RECURRENCE_LABELS[kind] : "다시 열리는지는 공고로 확인해요";
+}
+
 /**
  * 그 달에 이 정책이 맞지 않을 수 있는 까닭 — 단계·나이·사업 기간 (청사진 설계 7.6). 판정하지 않는다:
  * 숨기지 않고 "다를 수 있어요"로 알려 뒤로 보낼 뿐이다(원칙 3). 생일을 몰라 나이는 확실할 때만 말한다.
@@ -249,6 +262,7 @@ export function AddPolicy({ blueprint, nowMonth, busy, onOps, initial }: SheetPr
               <span className="mt-1 block text-[13px] text-smoke">
                 {(policy.planning?.roles ?? []).map((r) => PLACEMENT_ROLE_LABELS[r]).join(" · ") || "역할 정보 없음"}
                 {policy.planning?.age && ` · ${ageText(policy.planning.age)}`}
+                {` · ${recurrenceText(policy)}`}
               </span>
               {notes.length > 0 && <span className="mt-1 block text-[13px] text-graphite">지금은 {notes.join(" · ")}</span>}
             </button>
@@ -281,6 +295,12 @@ function PlaceForm({ blueprint, policy, nowMonth, busy, onOps, onBack }: SheetPr
         <span>언제부터</span>
         <input type="month" value={from} onChange={(e) => setFrom(e.target.value)} className={`w-44 ${inputClass}`} />
         {notes.length > 0 && <span className="text-[13px] text-graphite">{notes.join(" · ")} — 그래도 넣을 수 있어요. 대상인지는 신청 기관이 정해요.</span>}
+        {/* 고른 달의 확실성 — 넣기 전에 본다 (청사진 설계 7.6). */}
+        {valid && (
+          <span className="text-[13px] text-smoke">
+            이 시점은 {certaintyLabel({ from }, policy)}.{offSeason({ from }, policy) && ` ${seasonNote(from, policy)}`}
+          </span>
+        )}
       </label>
       <label className="flex flex-col gap-1.5 text-[14px]">
         <span>

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { ALL_PATHS } from "@/content/paths";
 import { ALL_POLICIES } from "@/content/policies";
 import { applyChanges, BlueprintRejection, lastPlacedYear, type BlueprintOp } from "@/lib/blueprint/apply";
-import { certaintyOf, endsBefore } from "@/lib/blueprint/certainty";
+import { certaintyOf, endsBefore, offSeason, seasonMonths } from "@/lib/blueprint/certainty";
 import { diffBlueprint } from "@/lib/blueprint/diff";
 import { anchorRange, emptyBlueprint, materialize, pathHorizonYear } from "@/lib/blueprint/materialize";
 import { blueprintSchema, type Blueprint } from "@/lib/blueprint/model";
@@ -119,6 +119,34 @@ describe("certaintyOf", () => {
   it("그 전에 끝나는 정책은 미정", () => {
     const ended = { ...scholarship, policy: { ...scholarship.policy, history: [{ date: "2027-02-28", kind: "ended" as const, summary: "종료", sourceIds: ["korea-2025-11-20"] }] } };
     expect(certaintyOf({ from: "2028-03" }, ended)).toBe("undetermined");
+  });
+});
+
+describe("offSeason — 예상 · 시기 확인 (5.3)", () => {
+  const scholarship = policies.get("national-scholarship")!; // rounds, 지난 회차 2025-11-20 ~ 12-26
+  const loan = policies.get("income-contingent-loan")!; // recurrence 없음
+
+  it("지난 회차들이 열렸던 달을 해마다 되풀이한 창", () => {
+    expect(seasonMonths(scholarship)).toEqual([11, 12]);
+    expect(seasonMonths(loan)).toEqual([]); // 다시 열린다는 근거가 없으면 창도 없다
+  });
+
+  it("예상 배치의 시작 달이 창 밖이면 시기 확인", () => {
+    expect(offSeason({ from: "2028-11" }, scholarship)).toBe(false);
+    expect(offSeason({ from: "2028-12", to: "2029-05" }, scholarship)).toBe(false);
+    expect(offSeason({ from: "2028-03" }, scholarship)).toBe(true);
+  });
+
+  it("예상이 아니면 말하지 않는다 — 확정·미정·창 없음", () => {
+    expect(offSeason({ from: "2025-12" }, scholarship)).toBe(false); // 확정 (회차 안)
+    expect(offSeason({ from: "2028-03" }, loan)).toBe(false); // 미정
+    const noRounds = { ...scholarship, policy: { ...scholarship.policy, applications: [] } };
+    expect(offSeason({ from: "2028-03" }, noRounds)).toBe(false);
+  });
+
+  it("해를 넘는 회차도 달로 펼친다", () => {
+    const winter = { ...scholarship, policy: { ...scholarship.policy, applications: [{ ...scholarship.policy.applications[0], startAt: "2025-12-01", endAt: "2026-01-31" }] } };
+    expect(seasonMonths(winter)).toEqual([1, 12]);
   });
 });
 

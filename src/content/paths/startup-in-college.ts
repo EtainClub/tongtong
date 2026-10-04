@@ -6,11 +6,11 @@ import type { PathInput } from "../path-schema";
  * 학부 2학년(0개월)에 작게 시험해 보고, 졸업 즈음(24) 사업자 등록 전에 예비창업 지원을, 사업자를 낸 뒤(30)
  * 초기 창업 지원을 받는 순서를 가정한다. 예비창업패키지는 사업자를 먼저 내면 쓸 수 없다 — 순서가 중요하다.
  * 칸의 why는 편집자 설명이다 — 사실은 각 정책 항목에 있다.
- * 초안 — 칸의 항목 대부분과 caveat가 원문 대조 전이다. 공개하려면 모든 칸의 항목이 공개여야 한다(validatePath).
+ * 2026-10-04 공개 — 모든 칸의 항목이 공개 항목이다(validatePath가 확인한다).
  */
 export const startupInCollege = {
   id: "startup-in-college",
-  publishStatus: "draft",
+  publishStatus: "published",
   goalKind: "startup",
   title: "재학 중 창업 실험 → 졸업 후 창업",
   summary: "학교에 다니며 작게 시험해 보고, 사업자를 내기 전과 낸 뒤에 쓸 수 있는 정책을 순서대로 놓았어요.",
@@ -38,14 +38,14 @@ export const startupInCollege = {
       id: "survival",
       text: "2018년에 생긴 기업 가운데 5년 뒤까지 살아남은 곳은 36.4%다.",
       assertionType: "FACT",
-      verified: false,
+      verified: true,
       sourceIds: ["mods-2025-10-23"],
     },
     {
       id: "order",
       text: "예비창업패키지는 사업자등록증도 법인 대표권도 없는 사람만 신청할 수 있다. 사업자를 먼저 내면 이 칸은 쓸 수 없다.",
       assertionType: "INTERPRETATION",
-      verified: false,
+      verified: true,
       sourceIds: ["bizinfo-2026-03-03"],
     },
   ],
@@ -71,5 +71,5 @@ export const startupInCollege = {
   ],
 
   revisions: [{ version: 1, date: "2026-10-01", material: true, summary: "첫 작성", claimIds: [] }],
-  reviewedAt: "2026-10-01",
+  reviewedAt: "2026-10-04",
 } satisfies PathInput;

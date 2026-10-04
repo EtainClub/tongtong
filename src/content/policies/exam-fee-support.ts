@@ -7,7 +7,7 @@ import type { PolicyInput } from "../schema";
  */
 export const examFeeSupport = {
   id: "exam-fee-support",
-  publishStatus: "draft",
+  publishStatus: "published",
 
   audience: ["young_adult"],
   category: "employment",

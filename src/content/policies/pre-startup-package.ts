@@ -3,12 +3,12 @@ import type { PolicyInput } from "../schema";
 /*
  * 예비창업패키지 — 정책 항목(사실). 카드 없음.
  *
- * 청사진 창업 경로의 법인 설립 전 칸 (청사진 설계 9.3). 초안 — claim은 원문 대조 전이다.
+ * 청사진 창업 경로의 법인 설립 전 칸 (청사진 설계 9.3). 2026-10-04 원문 대조(docs/source-check-2026-10-04.md) 뒤 공개.
  * 사업화 자금 금액은 출처마다 달라(최대 1억 원 / 약 4천만 원) 적지 않았다 — 공고문 첨부를 열어 확인한 뒤 claim으로 더한다.
  */
 export const preStartupPackage = {
   id: "pre-startup-package",
-  publishStatus: "draft",
+  publishStatus: "published",
 
   audience: ["young_adult"],
   category: "startup",
@@ -33,21 +33,21 @@ export const preStartupPackage = {
       id: "who",
       text: "신청자 이름의 사업자등록증이 없고 법인의 법률상 대표권도 없는 예비창업자가 신청할 수 있다. 2026년 공고의 기준일은 1월 22일이다.",
       assertionType: "FACT",
-      verified: false,
+      verified: true,
       sourceIds: ["bizinfo-2026-03-03"],
     },
     {
       id: "support",
       text: "사업화 자금과 창업 프로그램을 지원한다. 중소벤처기업부 소관이고 창업진흥원이 수행한다.",
       assertionType: "FACT",
-      verified: false,
+      verified: true,
       sourceIds: ["bizinfo-2026-03-03"],
     },
     {
       id: "period-2026",
       text: "2026년 모집 접수는 3월 6일부터 3월 24일까지였다.",
       assertionType: "FACT",
-      verified: false,
+      verified: true,
       sourceIds: ["bizinfo-2026-03-03"],
     },
   ],
@@ -66,5 +66,5 @@ export const preStartupPackage = {
   },
 
   revisions: [{ version: 1, date: "2026-10-01", material: true, summary: "첫 작성", claimIds: [] }],
-  reviewedAt: "2026-10-01",
+  reviewedAt: "2026-10-04",
 } satisfies PolicyInput;

@@ -249,7 +249,7 @@ export function MyRecords() {
 
       {/* 버튼들이 화면 위쪽에 있어도 결과가 보이도록 아래에 붙인다. */}
       {message && (
-        <p role="status" className="toast-enter sticky bottom-4 mt-6 rounded-sm border border-ink bg-canvas px-4 py-3 text-[14px]">
+        <p role="status" className="toast-enter sticky bottom-[calc(var(--bottom-nav,0px)+1rem)] mt-6 rounded-sm border border-ink bg-canvas px-4 py-3 text-[14px]">
           {message}
         </p>
       )}

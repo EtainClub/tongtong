@@ -98,10 +98,11 @@ export function Feed() {
   const hasPassed = [...data.states.values()].some((state) => state.passedAt);
 
   return (
-    <main id="main" className="mx-auto flex min-h-dvh max-w-xl flex-col px-5 pt-6 pb-10">
+    <main id="main" className="mx-auto flex min-h-[calc(100dvh-var(--bottom-nav,0px))] max-w-xl flex-col px-5 pt-6 pb-10">
       <header className="flex items-center justify-between">
         <h1 className="text-[20px] font-light tracking-[-0.02em]">통통</h1>
-        <nav className="flex gap-2">
+        {/* 작은 화면은 하단 탭(BottomNav)이 같은 일을 한다. */}
+        <nav className="hidden gap-2 sm:flex">
           {/* 공개 견본이 생기면 연다 (청사진 설계 7.1, 부록 A-12). 청소년에게는 없다. */}
           {PLAN_ENTRY_OPEN && data.profile.audienceType === "young_adult" && (
             <Link href="/plan" className="rounded-pill border border-stone px-4 py-1.5 text-[14px] hover:border-graphite">
@@ -175,7 +176,7 @@ export function Feed() {
           </p>
         </>
       ) : (
-        <FeedDone cards={CARDS.filter((c) => c.audience.includes(data.profile!.audienceType))} states={data.states} now={now} />
+        <FeedDone audience={data.profile.audienceType} cards={CARDS.filter((c) => c.audience.includes(data.profile!.audienceType))} states={data.states} now={now} />
       )}
 
       {error && (

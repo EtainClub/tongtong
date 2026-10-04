@@ -3,12 +3,12 @@ import type { PolicyInput } from "../schema";
 /*
  * 4단계 BK21 — 정책 항목(사실). 카드 없음.
  *
- * 청사진 박사 경로의 대학원 생활비 칸 (청사진 설계 9.3). 초안 — claim은 원문 대조 전이다.
+ * 청사진 박사 경로의 대학원 생활비 칸 (청사진 설계 9.3). 2026-10-04 원문 대조(docs/source-check-2026-10-04.md) 뒤 공개.
  * 4단계는 2027년 8월에 끝난다 — 박사 경로 대부분이 그 뒤라 견본의 caveat가 이 점을 적는다.
  */
 export const bk21Four = {
   id: "bk21-four",
-  publishStatus: "draft",
+  publishStatus: "published",
 
   audience: ["young_adult"],
   category: "education",
@@ -32,21 +32,21 @@ export const bk21Four = {
       id: "period",
       text: "4단계 BK21은 세계적 수준의 연구중심대학 육성을 목표로 2020년 9월부터 2027년 8월까지 7년 동안 진행된다.",
       assertionType: "FACT",
-      verified: false,
+      verified: true,
       sourceIds: ["nrf-bk21four"],
     },
     {
       id: "unit",
       text: "대학의 교육연구단(팀)을 선정해 지원하고, 그 교육연구단에 참여한 대학원생이 연구장학금을 받는다.",
       assertionType: "FACT",
-      verified: false,
+      verified: true,
       sourceIds: ["nrf-bk21four"],
     },
     {
       id: "stipend",
       text: "대학원생 연구장학금 지급 기준액은 석사 월 100만 원, 박사 월 160만 원, 박사수료생 월 130만 원이다.",
       assertionType: "FACT",
-      verified: false,
+      verified: true,
       sourceIds: ["nrf-bk21four"],
     },
   ],
@@ -61,5 +61,5 @@ export const bk21Four = {
   },
 
   revisions: [{ version: 1, date: "2026-10-01", material: true, summary: "첫 작성", claimIds: [] }],
-  reviewedAt: "2026-10-01",
+  reviewedAt: "2026-10-04",
 } satisfies PolicyInput;

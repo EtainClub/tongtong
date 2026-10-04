@@ -94,7 +94,7 @@ export function Saved() {
 
       {/* 되돌리기는 화면 아래에 붙인다 — 목록 어디에서 눌렀든 보이게. */}
       {(undo || error) && (
-        <div role="status" className="toast-enter sticky bottom-4 mt-6 flex items-center justify-between gap-3 rounded-sm border border-ink bg-canvas px-4 py-3 text-[14px]">
+        <div role="status" className="toast-enter sticky bottom-[calc(var(--bottom-nav,0px)+1rem)] mt-6 flex items-center justify-between gap-3 rounded-sm border border-ink bg-canvas px-4 py-3 text-[14px]">
           <span>{error ?? `${undo!.title} 저장을 해제했어요.`}</span>
           {undo && !error && (
             <button type="button" onClick={restore} disabled={busy} className="shrink-0 underline underline-offset-4 disabled:opacity-40">
