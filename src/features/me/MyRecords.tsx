@@ -7,6 +7,7 @@ import { CARDS } from "@/content/cards";
 import { PLAN_ENTRY_OPEN } from "@/content/paths";
 import { Category } from "@/content/schema";
 import { CATEGORY_LABELS, formatDate, LIFE_STAGE_LABELS } from "@/features/labels";
+import { InstallGuide } from "@/features/me/InstallGuide";
 import { Notice } from "@/features/ui/Notice";
 import { apiFetch, describeError } from "@/lib/firebase/api";
 import { linkGoogle, signOutToAnonymous, useAuth } from "@/lib/firebase/auth";
@@ -209,6 +210,8 @@ export function MyRecords() {
           </>
         )}
       </details>
+
+      <InstallGuide />
 
       <details className="mt-2 rounded-card border border-stone p-5">
         <summary className="disclosure text-[16px] font-semibold">기록 내려받기</summary>

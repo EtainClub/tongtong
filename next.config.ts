@@ -7,6 +7,18 @@ const nextConfig: NextConfig = {
     // 이 값이 있으면 서버도 App Check를 강제한다 (lib/guard/identity).
     NEXT_PUBLIC_APPCHECK_SITE_KEY: "6LcFcdUtAAAAANjIcttDvQVUIs4k1XiWBAg9HUM4",
   },
+  // 서비스 워커(로드맵 M7)는 늘 새로 받는다 — 브라우저가 옛 워커를 붙잡지 않게.
+  async headers() {
+    return [
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

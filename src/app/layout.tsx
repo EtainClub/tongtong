@@ -6,6 +6,7 @@ import { AuthProvider } from "@/lib/firebase/auth";
 import { UserDataProvider } from "@/lib/firebase/user-data";
 import { VisitBeacon } from "@/features/metrics/VisitBeacon";
 import { BottomNav } from "@/features/ui/BottomNav";
+import { Pwa } from "@/features/ui/Pwa";
 import { TopBar } from "@/features/ui/TopBar";
 import { SITE_URL } from "@/lib/site";
 
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <TopBar />
             {children}
             <BottomNav />
+            <Pwa />
           </UserDataProvider>
           <VisitBeacon />
         </AuthProvider>

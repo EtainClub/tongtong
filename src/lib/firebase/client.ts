@@ -3,7 +3,14 @@
 import { getApp, getApps, initializeApp } from "firebase/app";
 import { initializeAppCheck, ReCaptchaEnterpriseProvider, type AppCheck } from "firebase/app-check";
 import { connectAuthEmulator, getAuth } from "firebase/auth";
-import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
+import {
+  connectFirestoreEmulator,
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  type Firestore,
+} from "firebase/firestore";
 
 const config = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -22,7 +29,21 @@ for (const key of required) {
 
 export const firebaseApp = getApps().length ? getApp() : initializeApp(config);
 export const firebaseAuth = getAuth(firebaseApp);
-export const firebaseDb = getFirestore(firebaseApp);
+
+/**
+ * 브라우저에서는 내 문서(프로필·카드 상태·청사진)를 기기(IndexedDB)에 캐시한다 — 오프라인에서도 저장한 카드와
+ * 내 기록을 읽는다 (로드맵 M7). 쓰기는 늘 /api라 오프라인에서는 하지 않는다.
+ * 서버 렌더에는 IndexedDB가 없어 기본값을 쓴다. 개발 중 모듈이 다시 읽히면 이미 초기화돼 있다 — 그때는 있는 것을 쓴다.
+ */
+function createDb(): Firestore {
+  if (typeof window === "undefined") return getFirestore(firebaseApp);
+  try {
+    return initializeFirestore(firebaseApp, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+  } catch {
+    return getFirestore(firebaseApp);
+  }
+}
+export const firebaseDb = createDb();
 
 export const useEmulators = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true";
 

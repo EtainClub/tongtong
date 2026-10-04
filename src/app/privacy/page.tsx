@@ -52,6 +52,11 @@ export default function PrivacyPage() {
           기억해요 — 그 정책 카드를 열 때 처음 문장을 묻지 않기 위해서예요. 서버로 보내지 않아요.
         </p>
         <p className="mt-3 text-[15px] leading-relaxed text-graphite">
+          <strong className="font-medium text-ink">기기에 남는 사본.</strong> 인터넷이 끊겨도 저장한 카드와 내 기록을 볼 수 있도록, 내 기록(판단·저장·청사진)의
+          사본과 화면 파일을 이 브라우저 안에 담아 둬요. 다른 사람이 같은 기기·브라우저를 쓰면 볼 수 있으니, 함께 쓰는 기기라면 브라우저의 사이트 데이터를
+          지우세요. 서버의 기록을 지워도 이 사본은 브라우저 데이터를 지울 때까지 남을 수 있어요.
+        </p>
+        <p className="mt-3 text-[15px] leading-relaxed text-graphite">
           <strong className="font-medium text-ink">AI에게 묻기.</strong> 질문은 답을 만들기 위해 Anthropic에 보내지고, 통통은 질문과 답을 저장하지 않아요.
           카드에 적힌 추천 질문의 답만 7일 동안 모아 두고 다시 써요 — 누가 물었는지는 남기지 않아요.
         </p>
