@@ -81,7 +81,7 @@
 
 ## 청년주택드림청약통장 `youth-housing-dream-account`
 
-공개 전 남은 일: 비판·한계 없음(카드 공개 조건)
+공개 조건 충족
 
 > 한 줄 요약: 무주택 청년의 청약통장. 2년 이상 가입하면 연 4.5% 금리와 비과세·소득공제를 받는다.
 
@@ -100,6 +100,8 @@
   - [국토교통부 (대한민국 정책브리핑)](https://www.korea.kr/news/policyNewsView.do?newsId=148926066) — 「이거 하나면 목돈 생기고 주택 청약도…청년주택드림청약통장 21일 출시」
 - [x] `auto-switch` 기존 청년우대형청약저축 가입자는 따로 신청하지 않아도 청년주택드림청약통장으로 자동 전환됐다.
   - [국토교통부 (대한민국 정책브리핑)](https://www.korea.kr/news/policyNewsView.do?newsId=148926066) — 「이거 하나면 목돈 생기고 주택 청약도…청년주택드림청약통장 21일 출시」
+- [x] `cp-loan-rarely-executed` 청약통장 가입자가 당첨 뒤 쓰는 청년주택드림대출은 2025년 4~11월 전국에서 13건(32억 원)이 실행돼, 같은 기간 신청 185건(422억 원)보다 크게 적었고 서울에서는 한 건도 없었다. 국토교통부는 심사를 마치고 입주를 기다리는 경우가 있어 실행이 점차 늘 것이라고 설명했다. _(비판·한계, CLAIM, 주장: 국토교통부 제출 자료(문진석 의원실), 뉴스1 보도(2026-01-19))_
+  - [뉴스1 · 2026-01-19](https://www.news1.kr/realestate/general/6043215) — 「지난해 청년주택드림대출 서울 실행 0건…"구조적 한계 존재"」
 
 ## 국가기술자격 응시료 지원 `exam-fee-support`
 
@@ -514,6 +516,27 @@
   - [국토교통부 주택도시기금](https://nhuf.molit.go.kr/FP/FP05/FP0502/FP05020301.jsp) — 「청년전용 버팀목전세자금 (상품안내)」
 - [x] `no-duplicate` 주택도시기금 대출, 은행 전세자금대출, 주택담보대출을 이미 이용 중이면 받을 수 없고, 공공임대주택에 살고 있으면 원칙적으로 받을 수 없다.
   - [국토교통부 주택도시기금](https://nhuf.molit.go.kr/FP/FP05/FP0502/FP05020301.jsp) — 「청년전용 버팀목전세자금 (상품안내)」
+
+## 행복주택 (청년) `happy-housing` · 카드 없음
+
+공개 조건 충족
+
+> 한 줄 요약: 만 19~39세 무주택 청년이 시중 시세의 60~80% 임대료로 최대 6년 살 수 있는 공공임대주택.
+
+- [x] `target` 청년 계층은 만 19세 이상 만 39세 이하이면서 혼인 중이 아닌 무주택자다. _(계획 정보)_
+  - [한국토지주택공사 (LH청약플러스)](https://apply.lh.or.kr/lhapply/cm/cntnts/cntntsView.do?cntntsId=1201391&mi=1201663) — 「임대가이드 — 행복주택 입주자격」
+  - [국토교통부 마이홈](https://www.myhome.go.kr/html/guide/QulifyGuideType5.html) — 「행복주택 입주자격 (마이홈 공공주택 안내)」
+- [x] `income` 세대 월평균 소득이 전년도 도시근로자 가구원수별 월평균 소득의 100% 이하여야 한다. 1인 가구는 120%, 2인 가구는 110% 이하다.
+  - [한국토지주택공사 (LH청약플러스)](https://apply.lh.or.kr/lhapply/cm/cntnts/cntntsView.do?cntntsId=1201391&mi=1201663) — 「임대가이드 — 행복주택 입주자격」
+- [x] `asset` 총자산과 자동차가액 기준도 따로 충족해야 한다.
+  - [한국토지주택공사 (LH청약플러스)](https://apply.lh.or.kr/lhapply/cm/cntnts/cntntsView.do?cntntsId=1201391&mi=1201663) — 「임대가이드 — 행복주택 입주자격」
+  - [국토교통부 마이홈](https://www.myhome.go.kr/html/guide/QulifyGuideType5.html) — 「행복주택 입주자격 (마이홈 공공주택 안내)」
+- [x] `newcomer` 청년 계층에는 사회초년생 구분이 있고, 소득이 있는 업무에 종사한 기간이 모두 합쳐 5년 이내여야 한다.
+  - [한국토지주택공사 (LH청약플러스)](https://apply.lh.or.kr/lhapply/cm/cntnts/cntntsView.do?cntntsId=1201391&mi=1201663) — 「임대가이드 — 행복주택 입주자격」
+- [x] `rent` 임대료는 공급대상자별로 시중 시세의 60~80%다.
+  - [국토교통부 마이홈](https://www.myhome.go.kr/html/guide/QulifyGuideType5.html) — 「행복주택 입주자격 (마이홈 공공주택 안내)」
+- [x] `duration` 2년 단위로 계약하고, 기간이 끝날 때 입주자격을 다시 확인해 갱신한다. 대학생·청년은 최대 6년 살 수 있다. _(계획 정보)_
+  - [국토교통부 마이홈](https://www.myhome.go.kr/html/guide/QulifyGuideType5.html) — 「행복주택 입주자격 (마이홈 공공주택 안내)」
 
 # 경로 견본
 

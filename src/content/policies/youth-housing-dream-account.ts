@@ -33,6 +33,15 @@ export const youthHousingDreamAccount = {
       type: "official",
       license: "link-only",
     },
+    {
+      id: "news1-2026-01-19",
+      title: "지난해 청년주택드림대출 서울 실행 0건…\"구조적 한계 존재\"",
+      url: "https://www.news1.kr/realestate/general/6043215",
+      publisher: "뉴스1",
+      publishedAt: "2026-01-19",
+      type: "press",
+      license: "link-only",
+    },
   ],
 
   claims: [
@@ -87,7 +96,17 @@ export const youthHousingDreamAccount = {
     },
   ],
 
-  counterpoints: [],
+  // 국토교통부 제출 자료를 인용한 보도 (docs/source-check-housing-2026-10-04.md). 대출 조건은 소개하지 않는다 — 다른 정책이다.
+  counterpoints: [
+    {
+      id: "cp-loan-rarely-executed",
+      text: "청약통장 가입자가 당첨 뒤 쓰는 청년주택드림대출은 2025년 4~11월 전국에서 13건(32억 원)이 실행돼, 같은 기간 신청 185건(422억 원)보다 크게 적었고 서울에서는 한 건도 없었다. 국토교통부는 심사를 마치고 입주를 기다리는 경우가 있어 실행이 점차 늘 것이라고 설명했다.",
+      assertionType: "CLAIM",
+      assertedBy: "국토교통부 제출 자료(문진석 의원실), 뉴스1 보도(2026-01-19)",
+      verified: true,
+      sourceIds: ["news1-2026-01-19"],
+    },
+  ],
 
   policy: {
     history: [

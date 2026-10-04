@@ -9,7 +9,7 @@ import type { CardExperienceInput } from "../schema";
  */
 export const youthHousingDreamAccount = {
   policyId: "youth-housing-dream-account",
-  publishStatus: "draft",
+  publishStatus: "published",
 
   hook: "청약통장도 청년 전용이 따로 있다?",
   shorts: [
@@ -22,6 +22,14 @@ export const youthHousingDreamAccount = {
   ],
 
   flow: { trust: true, opinion: true },
+
+  // 정책 평가 이유 — 양쪽 방향을 고루. 근거 claim을 줄 끝에 적는다.
+  reasonOptions: [
+    { id: "rate-tax-helps", label: "연 4.5% 금리와 비과세가 도움이 된다" }, // rate, tax
+    { id: "start-early", label: "무주택 청년이 일찍 청약을 준비할 수 있다" }, // age, no-house
+    { id: "income-proof", label: "소득이 증빙돼야 해서 소득 없는 청년은 가입할 수 없다" }, // income
+    { id: "loan-rarely-used", label: "이어지는 대출이 실제로는 거의 실행되지 않았다" }, // cp-loan-rarely-executed
+  ],
 
   game: {
     type: "yes_no",

@@ -2,6 +2,7 @@ import { aiLearningMaterials } from "./ai-learning-materials";
 import { bk21Four } from "./bk21-four";
 import { everyoneTransitCard } from "./everyone-transit-card";
 import { examFeeSupport } from "./exam-fee-support";
+import { happyHousing } from "./happy-housing";
 import { highSchoolCredit } from "./high-school-credit";
 import { highSchoolFreeTuition } from "./high-school-free-tuition";
 import { incomeContingentLoan } from "./income-contingent-loan";
@@ -59,4 +60,6 @@ export const RAW_POLICIES: unknown[] = [
   tomorrowLearningCard,
   nationalEmploymentSupport,
   youthJeonseLoan,
+  // 청사진 공통 주거 — 청년 공공주택 (청사진 설계 9.3, 2026-10-04 작성·원문 대조 뒤 공개).
+  happyHousing,
 ];
