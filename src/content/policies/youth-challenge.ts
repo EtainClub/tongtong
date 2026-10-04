@@ -25,6 +25,15 @@ export const youthChallenge = {
       type: "official",
       license: "link-only",
     },
+    {
+      id: "korea-actually-2022-11-10",
+      title: "청년도전지원사업, 구직단념청년의 구직의욕 고취·자신감 회복이 목적 (사실은 이렇습니다)",
+      url: "https://www.korea.kr/briefing/actuallyView.do?newsId=148908090",
+      publisher: "기획재정부·고용노동부 (대한민국 정책브리핑)",
+      publishedAt: "2022-11-10",
+      type: "official",
+      license: "link-only",
+    },
   ],
 
   claims: [
@@ -72,7 +81,17 @@ export const youthChallenge = {
     },
   ],
 
-  counterpoints: [],
+  // 2022년 비판과 정부 설명. 그 뒤 취업 인센티브가 생겼다 — 그래서 "있었다"로 쓴다 (docs/counterpoint-candidates-2026-10-04.md).
+  counterpoints: [
+    {
+      id: "cp-allowance-without-job",
+      text: "취업하지 못해도 프로그램을 마치기만 하면 참여수당을 모두 받는 구조라는 비판이 있었다. 정부는 이 사업의 목적이 구직의욕과 자신감을 되찾게 하는 것이라고 설명했다.",
+      assertionType: "CLAIM",
+      assertedBy: "서울경제 보도(2022-11-09), 정책브리핑 「사실은 이렇습니다」에 실림",
+      verified: true,
+      sourceIds: ["korea-actually-2022-11-10"],
+    },
+  ],
 
   policy: { history: [], applications: [] },
 
@@ -83,5 +102,5 @@ export const youthChallenge = {
   },
 
   revisions: [{ version: 1, date: "2026-09-29", material: true, summary: "첫 작성", claimIds: [] }],
-  reviewedAt: "2026-09-30",
+  reviewedAt: "2026-10-04",
 } satisfies PolicyInput;

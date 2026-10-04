@@ -10,7 +10,7 @@ import type { CardExperienceInput } from "../schema";
  */
 export const youthChallenge = {
   policyId: "youth-challenge",
-  publishStatus: "draft",
+  publishStatus: "published",
 
   hook: "6개월 이상 쉬었다면, 오히려 받을 수 있는 취업지원이 있다?",
   shorts: [
@@ -23,6 +23,14 @@ export const youthChallenge = {
   ],
 
   flow: { trust: true, opinion: true },
+
+  // 정책 평가 이유 — 양쪽 방향을 고루. 근거 claim을 줄 끝에 적는다.
+  reasonOptions: [
+    { id: "restart-help", label: "쉬던 청년이 다시 시작하는 데 도움이 된다" }, // purpose
+    { id: "allowance-helps", label: "참여수당이 생활에 보탬이 된다" }, // programs
+    { id: "no-job-outcome", label: "취업으로 이어지지 않아도 수당을 준다" }, // cp-allowance-without-job
+    { id: "narrow-target", label: "6개월 이상 쉬어야 해서 대상이 좁다" }, // target
+  ],
 
   // 장기 과정의 최대 금액(참여수당 + 인센티브)을 나눠 본다. 합계는 programs·incentive claim에서 통통이 더한 값이다.
   game: {
