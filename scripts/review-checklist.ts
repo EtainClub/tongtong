@@ -58,6 +58,8 @@ for (const policy of ALL_POLICIES) {
 
   out.push(`## ${policy.name} \`${policy.id}\`${carded.has(policy.id) ? "" : " · 카드 없음"}`, "");
   out.push(blockers.length ? `공개 전 남은 일: ${blockers.join(" · ")}` : "공개 조건 충족", "");
+  // 한 줄 요약은 claim이 아니라 검증 표시가 없다 — 아래 claim에 없는 말이 들어 있지 않은지 함께 본다.
+  if (policy.summary) out.push(`> 한 줄 요약: ${policy.summary}`, "");
 
   for (const claim of claims) {
     const tags = [

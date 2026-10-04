@@ -14,6 +14,7 @@ export const youthHousingDreamAccount = {
   lifeStages: ["employed", "housing", "asset_building"],
 
   name: "청년주택드림청약통장",
+  summary: "무주택 청년의 청약통장. 2년 이상 가입하면 연 4.5% 금리와 비과세·소득공제를 받는다.",
 
   sources: [
     {

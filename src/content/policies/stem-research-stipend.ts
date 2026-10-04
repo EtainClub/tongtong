@@ -16,6 +16,7 @@ export const stemResearchStipend = {
   lifeStages: ["college"],
 
   name: "이공계 연구생활장려금",
+  summary: "참여 대학 이공계 대학원생이 매달 석사 80만 원·박사 110만 원 이상을 받도록 보장한다. 따로 더 주는 돈은 아니다.",
 
   sources: [
     {

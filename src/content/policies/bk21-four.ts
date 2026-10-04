@@ -15,6 +15,7 @@ export const bk21Four = {
   lifeStages: ["college"],
 
   name: "4단계 BK21",
+  summary: "대학의 교육연구단을 뽑아 지원하고, 참여한 대학원생에게 연구장학금을 주는 사업. 2027년 8월까지다.",
 
   sources: [
     {

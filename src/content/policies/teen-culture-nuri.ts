@@ -14,6 +14,7 @@ export const teenCultureNuri = {
   lifeStages: [],
 
   name: "문화누리카드",
+  summary: "6세 이상 기초생활수급자·차상위계층에게 1인당 연 15만 원(13~18세는 16만 원)을 충전해 주는 카드.",
 
   sources: [
     {

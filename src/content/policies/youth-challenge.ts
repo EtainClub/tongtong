@@ -14,6 +14,7 @@ export const youthChallenge = {
   lifeStages: ["job_seeking"],
 
   name: "청년도전지원사업",
+  summary: "구직을 멈춘 18~34세 청년에게 자신감 회복·구직의욕 프로그램과 참여수당을 지원한다.",
 
   sources: [
     {

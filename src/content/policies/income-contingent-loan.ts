@@ -16,6 +16,7 @@ export const incomeContingentLoan = {
   lifeStages: ["college"],
 
   name: "취업 후 상환 학자금대출",
+  summary: "대학생·대학원생에게 등록금과 생활비를 빌려주고, 취업 등으로 소득이 생긴 때부터 갚게 하는 대출.",
 
   sources: [
     {

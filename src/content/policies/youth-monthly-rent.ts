@@ -14,6 +14,7 @@ export const youthMonthlyRent = {
   lifeStages: ["living_alone", "housing", "job_seeking", "college"],
 
   name: "청년월세 지원",
+  summary: "부모와 따로 사는 무주택 청년에게 월세를 월 최대 20만 원, 최대 24개월 지원한다. 생애 한 번만 받는다.",
 
   sources: [
     {

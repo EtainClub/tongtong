@@ -14,6 +14,7 @@ export const highSchoolFreeTuition = {
   lifeStages: [],
 
   name: "고교 무상교육",
+  summary: "고등학교 입학금·수업료·학교운영지원비·교과서비를 지원한다. 국가가 내는 몫은 줄어들고 있다.",
 
   sources: [
     {

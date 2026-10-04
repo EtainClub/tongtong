@@ -3,6 +3,7 @@
 - 작성일: 2026-10-01 (개정: 같은 날 — 콘텐츠를 정책 항목과 카드 두 층으로 나눔 / B2 구현 뒤 전체 검토 — 부록 A, 보완 단계 B2.1)
 - 근거: 현재 코드(`src/content/schema.ts`, `src/content/cards/index.ts`, `src/lib/*`, `firestore.rules`), `design-review.md`(판단 모델·법적 게이트), `roadmap.md`(M4–M10), 도장 `dojang-service-design.md`의 Living Blueprint(REV·구조화 버전 로그)
 - 이 문서의 역할: 카드 한 장씩 "알아보고 따지는" 지금의 통통에 **장기 플랜**을 더한다. 무엇을 만들고, 무엇을 만들지 않고, 콘텐츠·데이터·화면·단계를 어떻게 나눌지 정한다.
+- 현재 단계 (2026-10-04): **B3 완료, B4 관문(측정 4주·학부생 5명) 대기.** 카드 트랙과 합친 진행 상황과 다음 순서는 `roadmap.md` 1장.
 
 ---
 

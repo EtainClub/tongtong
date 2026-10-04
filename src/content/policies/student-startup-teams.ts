@@ -16,6 +16,7 @@ export const studentStartupTeams = {
   lifeStages: ["college", "startup"],
 
   name: "학생 창업유망팀 300+",
+  summary: "학생 창업팀을 뽑아 창업교육·멘토링·네트워킹을 지원하는 교육부 사업.",
 
   sources: [
     {

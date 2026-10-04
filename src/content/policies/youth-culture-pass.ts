@@ -14,6 +14,7 @@ export const youthCulturePass = {
   lifeStages: ["college", "job_seeking"],
 
   name: "청년문화예술패스",
+  summary: "올해 19·20세가 되는 청년에게 공연·전시·영화·도서에 쓸 수 있는 15만~20만 원을 지원한다.",
 
   sources: [
     {

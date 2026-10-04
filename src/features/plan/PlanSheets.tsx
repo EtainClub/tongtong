@@ -259,6 +259,7 @@ export function AddPolicy({ blueprint, nowMonth, busy, onOps, initial }: SheetPr
                 {policy.planning?.repayable && <span className="ml-1.5 text-[13px] text-graphite">갚아야 해요</span>}
                 {findCard(policy.id) && <span className="ml-1.5 text-[12px] text-graphite">◆</span>}
               </span>
+              {policy.summary && <span className="mt-1 block text-[14px] text-graphite">{policy.summary}</span>}
               <span className="mt-1 block text-[13px] text-smoke">
                 {(policy.planning?.roles ?? []).map((r) => PLACEMENT_ROLE_LABELS[r]).join(" · ") || "역할 정보 없음"}
                 {policy.planning?.age && ` · ${ageText(policy.planning.age)}`}

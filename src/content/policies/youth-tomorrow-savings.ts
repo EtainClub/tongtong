@@ -14,6 +14,7 @@ export const youthTomorrowSavings = {
   lifeStages: ["employed", "asset_building"],
 
   name: "청년내일저축계좌",
+  summary: "기준 중위소득 50% 이하 가구의 일하는 청년이 매달 10만 원 이상 저축하면 정부가 매달 30만 원을 더해 준다(3년).",
 
   sources: [
     {

@@ -14,6 +14,7 @@ export const aiLearningMaterials = {
   lifeStages: [],
 
   name: "AI 디지털교과서",
+  summary: "2025년 교과서로 학교에 들어왔다가, 같은 해 법 개정으로 학교장이 쓸지 정하는 교육자료가 된 AI 디지털교과서.",
 
   sources: [
     {

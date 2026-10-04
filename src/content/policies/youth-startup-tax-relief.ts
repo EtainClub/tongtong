@@ -16,6 +16,7 @@ export const youthStartupTaxRelief = {
   lifeStages: ["startup"],
 
   name: "청년창업중소기업 세액감면",
+  summary: "청년이 창업한 중소기업의 법인세·소득세를 5년 동안 감면한다. 감면율은 창업 시기와 지역에 따라 다르다.",
 
   sources: [
     {

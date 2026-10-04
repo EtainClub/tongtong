@@ -14,6 +14,7 @@ export const everyoneTransitCard = {
   lifeStages: ["college", "job_seeking", "employed"],
 
   name: "모두의카드",
+  summary: "쓴 대중교통비의 일부를 돌려주는 환급 제도. 청년은 기본형으로 30%를 돌려받는다.",
 
   sources: [
     {

@@ -15,6 +15,7 @@ export const nationalScholarship = {
   lifeStages: ["college"],
 
   name: "국가장학금 Ⅰ유형",
+  summary: "소득구간에 따라 대학생 등록금을 지원하는 장학금. 기초·차상위 가구는 등록금 전액, 9구간은 연 100만 원이다.",
 
   sources: [
     {

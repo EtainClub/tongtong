@@ -15,6 +15,7 @@ export const preStartupPackage = {
   lifeStages: ["startup"],
 
   name: "예비창업패키지",
+  summary: "사업자등록 전인 예비창업자에게 사업화 자금과 창업 프로그램을 지원한다.",
 
   sources: [
     {

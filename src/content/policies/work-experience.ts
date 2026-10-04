@@ -14,6 +14,7 @@ export const workExperience = {
   lifeStages: ["college", "job_seeking"],
 
   name: "미래내일 일경험",
+  summary: "15~34세 미취업 청년이 인턴·프로젝트 등으로 일을 경험하는 사업. 주 25시간 이상 참여하면 수당을 받는다.",
 
   sources: [
     {

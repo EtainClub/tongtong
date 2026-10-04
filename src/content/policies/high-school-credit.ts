@@ -14,6 +14,7 @@ export const highSchoolCredit = {
   lifeStages: [],
 
   name: "고교학점제",
+  summary: "과목마다 기준을 채워야 학점을 받는 고등학교 제도. 2026학년도부터 선택과목은 출석률만 채우면 된다.",
 
   sources: [
     {

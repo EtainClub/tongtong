@@ -14,6 +14,7 @@ export const outOfSchoolYouth = {
   lifeStages: [],
 
   name: "학교 밖 청소년 지원",
+  summary: "학교를 그만두었거나 다니지 않는 9~24세 청소년에게 꿈드림 센터가 상담·교육·취업·자립을 지원한다.",
 
   sources: [
     {

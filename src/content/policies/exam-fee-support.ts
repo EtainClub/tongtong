@@ -14,6 +14,7 @@ export const examFeeSupport = {
   lifeStages: ["college", "job_seeking"],
 
   name: "국가기술자격 응시료 지원",
+  summary: "청년이 국가기술자격시험을 볼 때 응시료의 50%를 지원한다. 예산이 떨어지면 마감된다.",
 
   sources: [
     {

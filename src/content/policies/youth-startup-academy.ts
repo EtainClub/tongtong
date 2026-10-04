@@ -15,6 +15,7 @@ export const youthStartupAcademy = {
   lifeStages: ["startup"],
 
   name: "청년창업사관학교",
+  summary: "39세 이하 초기 창업 대표자에게 사업화 자금(평균 7천만 원)과 창업공간·교육·코칭을 지원한다.",
 
   sources: [
     {

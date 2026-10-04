@@ -14,6 +14,7 @@ export const youthJobLeap = {
   lifeStages: ["job_seeking", "employed"],
 
   name: "청년일자리도약장려금",
+  summary: "5인 이상 우선지원대상기업이 청년을 채용하면 기업에 최대 720만 원을, 비수도권에서 일하는 청년에게는 근속 인센티브를 준다.",
 
   sources: [
     {

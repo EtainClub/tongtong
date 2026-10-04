@@ -14,6 +14,7 @@ export const youngFutureSavings = {
   lifeStages: ["college", "job_seeking", "employed", "asset_building"],
 
   name: "청년미래적금",
+  summary: "청년이 3년간 매달 최대 50만 원을 넣으면 정부가 납입액의 일정 비율을 더해 주는 적금. 이자는 비과세다.",
 
   sources: [
     {
