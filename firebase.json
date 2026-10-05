@@ -1,16 +1,35 @@
 {
-  "firestore": { "rules": "firestore.rules", "indexes": "firestore.indexes.json" },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
   "apphosting": [
     {
       "backendId": "tongtong",
       "rootDir": ".",
-      "ignore": ["node_modules", ".git", ".next", "firebase-debug.log", "firebase-debug.*.log", "firestore-debug.log", ".env*", "*.tsbuildinfo"]
+      "ignore": [
+        "node_modules",
+        ".git",
+        ".next",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "firestore-debug.log",
+        ".env*",
+        "*.tsbuildinfo"
+      ],
+      "alwaysDeployFromSource": true
     }
   ],
   "emulators": {
-    "auth": { "port": 9099 },
-    "firestore": { "port": 8080 },
-    "ui": { "enabled": true },
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "ui": {
+      "enabled": true
+    },
     "singleProjectMode": true
   }
 }
