@@ -19,6 +19,8 @@ export const teenCultureNuri = {
     "그런데 13~18세 청소년은 조금 더 받습니다.",
     "얼마를, 누가 받을 수 있을까요?",
   ],
+  // docs/shorts/teen-culture-nuri.md 대본으로 만든 영상 (2026-10-05 등록).
+  video: { youtubeId: "-_H4wsgU_Bk" },
 
   flow: { trust: true, opinion: true },
 

@@ -27,6 +27,15 @@ describe("buildReport", () => {
     expect(report.finalJudgment.denominator).toBe(5); // 최종 판단은 그대로 묻는다
   });
 
+  it("빈칸 요청은 역할별로 기간 합계", () => {
+    const docs: DailyDoc[] = [
+      { date: "2026-10-01", gaps: { housing: 2, funding: 1 } },
+      { date: "2026-10-02", gaps: { housing: 1 } },
+    ];
+    expect(buildReport(docs, [], "2026-10-02").gaps).toEqual({ housing: 3, funding: 1 });
+    expect(buildReport([], [], "2026-10-02").gaps).toEqual({});
+  });
+
   it("분모가 0이면 비율을 만들지 않는다", () => {
     expect(buildReport([], [], "2026-10-01").firstJudgment.rate).toBeNull();
   });

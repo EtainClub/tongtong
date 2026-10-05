@@ -20,6 +20,8 @@ export const workExperience = {
     "프로젝트에 참여하는 방식입니다.",
     "나도 참여할 수 있을까요?",
   ],
+  // docs/shorts/work-experience.md 대본으로 만든 영상 (2026-10-05 등록).
+  video: { youtubeId: "hxLuHgKsgWA" },
 
   flow: { trust: false, opinion: false },
 

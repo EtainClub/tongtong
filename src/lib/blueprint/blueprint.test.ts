@@ -185,6 +185,29 @@ describe("applyChanges", () => {
     expect(changes).toEqual([{ op: "move", targetId: "rent", before: { from: "2028-10", to: "2030-09" }, after: { from: "2029-03", to: "2031-02" } }]);
   });
 
+  it("되돌리기 — 뺀 배치를 같은 id·상태·메모로 다시 넣고, 바꾼 배치는 앞 모습으로", () => {
+    const prev = apply([{ op: "setNote", id: "rent", note: "보증금 따로 마련" }]).next;
+    const before = prev.placements.find((p) => p.id === "rent")!;
+    const removed = apply([{ op: "removePlacement", id: "rent" }], prev).next;
+    const { next, changes } = apply([{ op: "restorePlacement", placement: before }], removed);
+    expect(next.placements.find((p) => p.id === "rent")).toEqual(before);
+    expect(changes.map((c) => c.op)).toEqual(["add"]);
+
+    const missed = apply([{ op: "setStatus", id: "rent", status: "missed" }], prev).next;
+    // missed → ready는 전이 표에 없지만, 되돌리기는 앞 모습 그대로 돌아간다.
+    const ready = apply([{ op: "setStatus", id: "rent", status: "ready" }], prev).next;
+    const readyRent = ready.placements.find((p) => p.id === "rent")!;
+    const missedFromReady = apply([{ op: "setStatus", id: "rent", status: "missed" }], ready).next;
+    expect(apply([{ op: "restorePlacement", placement: readyRent }], missedFromReady).next.placements.find((p) => p.id === "rent")?.status).toBe("ready");
+    expect(missed.placements.find((p) => p.id === "rent")?.status).toBe("missed");
+  });
+
+  it("되돌리기 — 지금 항목 버전보다 높은 버전, 범위 밖 기간은 거절", () => {
+    const rent = fromPath().placements.find((p) => p.id === "rent")!;
+    expect(rejection(() => apply([{ op: "restorePlacement", placement: { ...rent, policyVersion: 99 } }]))).toBe("unknown-policy");
+    expect(rejection(() => apply([{ op: "restorePlacement", placement: { ...rent, from: "2040-01", to: undefined } }]))).toBe("invalid-range");
+  });
+
   it("상태 전이 표 밖으로는 갈 수 없다", () => {
     expect(rejection(() => apply([{ op: "setStatus", id: "rent", status: "done" }]))).toBe("invalid-transition");
     const done = apply([{ op: "setStatus", id: "rent", status: "active" }]).next;

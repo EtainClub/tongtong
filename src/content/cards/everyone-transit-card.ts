@@ -20,6 +20,8 @@ export const everyoneTransitCard = {
     "타는 시간대를 바꾸면 더 커지기도 합니다.",
     "내 한 달 교통비라면 얼마나 돌려받을까요?",
   ],
+  // docs/shorts/everyone-transit-card.md 대본으로 만든 영상 (2026-10-05 등록).
+  video: { youtubeId: "589Ecb3YkvQ" },
 
   flow: { trust: true, opinion: true },
 

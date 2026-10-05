@@ -3,11 +3,10 @@
 import type { User } from "firebase/auth";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
-import { findCard } from "@/content/cards";
-import { findPath, PATHS } from "@/content/paths";
-import { findPolicy, POLICIES } from "@/content/policies";
+import { findPath } from "@/content/paths";
+import { findPolicy } from "@/content/policies";
 import { ClaimItem } from "@/features/card/Reveal";
 import { ErrorNote, primaryButton } from "@/features/card/session";
 import { formatDate } from "@/features/labels";
@@ -15,14 +14,14 @@ import { ChecksPanel } from "@/features/plan/ChecksPanel";
 import { PlanGate } from "@/features/plan/PlanGate";
 import { AddPolicy, GoalForm, MilestoneForm, PlacementDetail } from "@/features/plan/PlanSheets";
 import { policyName, Timeline } from "@/features/plan/Timeline";
+import { useBlueprintChecks } from "@/features/plan/useBlueprintChecks";
 import { Sheet } from "@/features/ui/Sheet";
 import type { BlueprintOp } from "@/lib/blueprint/apply";
-import { checkBlueprint, openChecks, type Check, type Fix } from "@/lib/blueprint/check";
+import type { Check, Fix } from "@/lib/blueprint/check";
 import type { Blueprint } from "@/lib/blueprint/model";
 import { currentMonth } from "@/lib/blueprint/month";
 import { apiFetch } from "@/lib/firebase/api";
 import { describeBlueprintError, useBlueprintWriter } from "@/lib/firebase/blueprint";
-import { useUserData } from "@/lib/firebase/user-data";
 
 /*
  * 내 청사진 /plan (청사진 설계 7.3).
@@ -35,9 +34,8 @@ import { useUserData } from "@/lib/firebase/user-data";
 
 type OpenSheet = { kind: "placement"; id: string } | { kind: "add"; policyId?: string } | { kind: "milestone"; id: string | null } | { kind: "goal" } | null;
 
-const policyMap = new Map(POLICIES.map((policy) => [policy.id, policy]));
-const pathMap = new Map(PATHS.map((path) => [path.id, path]));
-const hasCard = (policyId: string) => Boolean(findCard(policyId));
+/** 점검 반영 뒤 되돌리기를 보여 주는 시간 (청사진 설계 7.5). */
+const UNDO_MS = 5000;
 
 export function PlanView() {
   const add = useSearchParams().get("add");
@@ -60,7 +58,6 @@ function Empty({ adding }: { adding: boolean }) {
 function Plan({ user, blueprint, add }: { user: User; blueprint: Blueprint; add: string | null }) {
   const [now] = useState(() => new Date());
   const nowMonth = currentMonth(now);
-  const data = useUserData();
   const writer = useBlueprintWriter(user, blueprint);
   // 링크로 정책을 들고 들어왔으면 넣기 시트부터 — 카드를 끝낸 뒤 두 번 탭 안에 넣는다(B3 완료 기준).
   // 그 정책은 이 시트에만 붙인다. 주소의 ?add=는 지운다 — 새로고침하거나 "+ 정책 넣기"를 다시 눌러도 같은 정책으로 열리지 않게.
@@ -71,13 +68,15 @@ function Plan({ user, blueprint, add }: { user: User; blueprint: Blueprint; add:
   const [archiving, setArchiving] = useState<"idle" | "confirm" | "busy">("idle");
   const [archiveError, setArchiveError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  /** 방금 반영한 점검을 되돌리는 op — 반영 전 배치의 모습 그대로. 5초 뒤에 사라진다. */
+  const [undo, setUndo] = useState<{ rev: number; ops: BlueprintOp[] } | null>(null);
+  useEffect(() => {
+    if (!undo) return;
+    const timer = window.setTimeout(() => setUndo(null), UNDO_MS);
+    return () => window.clearTimeout(timer);
+  }, [undo]);
 
-  const completedCards = useMemo(() => new Set([...data.states.values()].filter((s) => s.completedAt).map((s) => s.cardId)), [data.states]);
-  const allChecks = useMemo(
-    () => checkBlueprint(blueprint, { policies: policyMap, paths: pathMap, hasCard, completedCards, now }),
-    [blueprint, completedCards, now],
-  );
-  const checks = openChecks(allChecks, blueprint.ackedChecks);
+  const { all: allChecks, open: checks } = useBlueprintChecks(blueprint, now);
 
   const close = () => {
     setSheet(null);
@@ -85,15 +84,30 @@ function Plan({ user, blueprint, add }: { user: User; blueprint: Blueprint; add:
   };
   const onOps = async (ops: BlueprintOp[], options?: { close?: boolean }) => {
     setNotice(null);
+    setUndo(null);
     if ((await writer.send(ops)) && options?.close) close();
   };
   const onFix = async (check: Check, fix: Fix) => {
     setNotice(null);
+    setUndo(null);
+    // 반영 전 모습을 잡아 둔다 — 고친 배치마다 restorePlacement 하나.
+    const touched = new Set(fix.ops.flatMap((op) => ("id" in op ? [op.id] : [])));
+    const restore: BlueprintOp[] = blueprint.placements.filter((p) => touched.has(p.id)).map((placement) => ({ op: "restorePlacement", placement }));
     const done = await writer.send(fix.ops, { trigger: { kind: "check", checkKind: check.kind, ...(check.policyId && { policyId: check.policyId }) } });
-    if (done) setNotice(`REV.${blueprint.rev + 1}로 저장했어요.`);
+    if (!done) return;
+    const rev = blueprint.rev + 1;
+    setNotice(`REV.${rev}로 저장했어요.`);
+    if (restore.length > 0) setUndo({ rev, ops: restore });
+  };
+  const onUndo = async () => {
+    if (!undo) return;
+    const { rev, ops } = undo;
+    setUndo(null);
+    if (await writer.send(ops, { intent: `REV.${rev} 되돌리기` })) setNotice(`REV.${rev + 1}로 되돌렸어요.`);
   };
   const onDismiss = async (check: Check) => {
     setNotice(null);
+    setUndo(null);
     await writer.ack([check.key], allChecks.map((c) => c.key));
   };
 
@@ -148,8 +162,14 @@ function Plan({ user, blueprint, add }: { user: User; blueprint: Blueprint; add:
         onOpen={(placementId) => setSheet({ kind: "placement", id: placementId })}
       />
       {notice && (
-        <p role="status" className="toast-enter mt-3 text-[14px] text-graphite">
-          {notice}{" "}
+        <p role="status" className="toast-enter mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[14px] text-graphite">
+          <span>{notice}</span>
+          {/* 점검을 반영한 직후 5초 동안만 (청사진 설계 7.5). 되돌리기도 새 REV다. */}
+          {undo && (
+            <button type="button" disabled={writer.busy} onClick={() => void onUndo()} className="rounded-pill border border-ink px-3 py-1 font-semibold text-ink disabled:opacity-40">
+              되돌리기
+            </button>
+          )}
           <Link href="/plan/revisions" className="underline underline-offset-4">
             REV 기록
           </Link>

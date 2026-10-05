@@ -8,6 +8,7 @@ import {
   MAX_MILESTONES,
   MAX_PLACEMENTS,
   PlacementStatus,
+  placementSchema,
   STATUS_TRANSITIONS,
   type Blueprint,
   type Change,
@@ -43,6 +44,12 @@ export const blueprintOp = z.discriminatedUnion("op", [
   /** 이 이정표에 딸린 배치는 남고, 이정표 연결만 끊긴다. */
   z.object({ op: z.literal("removeMilestone"), id }),
   z.object({ op: z.literal("setGoal"), title: z.string().trim().min(1).max(60).optional(), horizonYear: z.number().int().optional() }),
+  /**
+   * 배치 하나를 앞의 모습 그대로 되돌린다 — 점검 반영 뒤 "되돌리기"(청사진 설계 7.5)만 쓴다.
+   * 뺀 배치는 같은 id로 다시 넣고, 있는 배치는 통째로 바꾼다. 상태 전이 표를 거치지 않는다 — 내 청사진의 앞 모습으로 돌아갈 뿐이다.
+   * 되돌리기도 새 REV다(기록은 지우지 않는다).
+   */
+  z.object({ op: z.literal("restorePlacement"), placement: placementSchema }),
 ]);
 export type BlueprintOp = z.infer<typeof blueprintOp>;
 
@@ -202,6 +209,21 @@ function applyOne(blueprint: Blueprint, op: BlueprintOp, ctx: ApplyContext): Blu
       return withPlacement(op.id, (p) => ({ ...p, policyVersion: cardVersion(placeablePolicy(ctx.policies, p.policyId)) }));
     case "setNote":
       return withPlacement(op.id, (p) => ({ ...p, note: op.note || undefined }));
+    case "restorePlacement": {
+      const restored = op.placement;
+      const policy = placeablePolicy(ctx.policies, restored.policyId);
+      // 앞 모습은 지금 항목 버전을 넘을 수 없다 — 넘으면 만든 값이다.
+      if (restored.policyVersion > cardVersion(policy)) throw new BlueprintRejection("unknown-policy");
+      checkRange(blueprint, restored.from, restored.to);
+      const exists = blueprint.placements.some((p) => p.id === restored.id);
+      if (!exists && blueprint.placements.length >= MAX_PLACEMENTS) throw new BlueprintRejection("too-many-placements");
+      // 그 사이 이정표가 지워졌으면 연결만 끊는다.
+      const placement = { ...restored, milestoneId: restored.milestoneId && blueprint.milestones.some((m) => m.id === restored.milestoneId) ? restored.milestoneId : undefined };
+      return {
+        ...blueprint,
+        placements: exists ? blueprint.placements.map((p) => (p.id === restored.id ? placement : p)) : [...blueprint.placements, placement],
+      };
+    }
     case "addMilestone":
       if (blueprint.milestones.length >= MAX_MILESTONES) throw new BlueprintRejection("too-many-milestones");
       checkRange(blueprint, op.at);

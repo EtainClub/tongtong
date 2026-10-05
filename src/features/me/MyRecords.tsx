@@ -9,6 +9,7 @@ import { Category } from "@/content/schema";
 import { CATEGORY_LABELS, formatDate, LIFE_STAGE_LABELS } from "@/features/labels";
 import { InstallGuide } from "@/features/me/InstallGuide";
 import { NotificationSettings } from "@/features/me/NotificationSettings";
+import { useBlueprintChecks } from "@/features/plan/useBlueprintChecks";
 import { Notice } from "@/features/ui/Notice";
 import { apiFetch, describeError } from "@/lib/firebase/api";
 import { linkGoogle, signOutToAnonymous, useAuth } from "@/lib/firebase/auth";
@@ -258,16 +259,26 @@ export function MyRecords() {
 /** 청사진 진입점 (청사진 설계 7.1). 청사진을 구독하므로 진입점이 열렸을 때만 그린다. */
 function PlanLink() {
   const { blueprint } = useActiveBlueprint();
-  return <RowLink href="/plan" label="내 청사진" meta={blueprint ? `REV.${blueprint.rev}` : undefined} />;
+  // 청사진 설계 7.1 — "내 청사진 · REV.4 · 점검할 것 2". 점검은 /plan과 같은 계산.
+  const { open } = useBlueprintChecks(blueprint);
+  return (
+    <RowLink
+      href="/plan"
+      label="내 청사진"
+      note={open.length > 0 ? `점검할 것 ${open.length}` : undefined}
+      meta={blueprint ? `REV.${blueprint.rev}` : undefined}
+    />
+  );
 }
 
-/** 목록 한 줄 — 이름, 오른쪽에 부가 정보와 꺾쇠. */
-function RowLink({ href, label, meta }: { href: string; label: string; meta?: string }) {
+/** 목록 한 줄 — 이름, 오른쪽에 알림 한 줄·부가 정보(숫자)와 꺾쇠. */
+function RowLink({ href, label, note, meta }: { href: string; label: string; note?: string; meta?: string }) {
   return (
     <li>
       <Link href={href} className="flex items-center justify-between gap-3 px-5 py-4 transition-colors hover:bg-taupe/60">
         <span className="text-[15px] font-medium">{label}</span>
         <span className="flex items-center gap-2 text-[13px] text-smoke">
+          {note && <span className="rounded-pill bg-taupe px-2 py-0.5 font-medium text-graphite">{note}</span>}
           {meta && <span className="font-mono tabular">{meta}</span>}
           <span aria-hidden="true" className="text-[18px] leading-none text-ash">
             ›

@@ -19,6 +19,8 @@ export const outOfSchoolYouth = {
     "2026년에는 수능 모의평가 응시료도 새로 지원합니다.",
     "얼마를, 어떻게 받을 수 있을까요?",
   ],
+  // docs/shorts/out-of-school-youth.md 대본으로 만든 영상 (2026-10-05 등록).
+  video: { youtubeId: "uKwQV9hMvRk" },
 
   flow: { trust: true, opinion: true },
 

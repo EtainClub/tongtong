@@ -23,6 +23,8 @@ export const youngFutureSavings = {
     "그런데 누구나 같은 금액을 받는 건 아닙니다.",
     "나는 얼마나 받을 수 있을까요?",
   ],
+  // docs/shorts/young-future-savings.md 대본으로 만든 영상 (2026-10-05 등록).
+  video: { youtubeId: "y2S5myRatXY" },
 
   flow: { trust: true, opinion: true },
 

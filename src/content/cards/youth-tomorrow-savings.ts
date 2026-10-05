@@ -20,6 +20,8 @@ export const youthTomorrowSavings = {
     "정부가 지원금을 더 얹어 줍니다.",
     "3년 뒤, 얼마가 될까요?",
   ],
+  // docs/shorts/youth-tomorrow-savings.md 대본으로 만든 영상 (2026-10-05 등록).
+  video: { youtubeId: "AyqNRSBPJnw" },
 
   flow: { trust: true, opinion: true },
 

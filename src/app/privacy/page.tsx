@@ -52,7 +52,7 @@ export default function PrivacyPage() {
         <p className="mt-4 text-[15px] leading-relaxed text-graphite">
           <strong className="font-medium text-ink">자동으로 남는 것.</strong> 서버 접속 기록(IP 주소, 요청 시각)은 오류 확인과 남용 방지를 위해 30일 동안
           남았다가 지워져요. 봇을 막기 위해 Google reCAPTCHA가 브라우저 정보를 확인해요. 이용 통계는 날짜별·카드별 합계만 남기고 누가 했는지는 남기지
-          않아요. 재방문을 세기 위해 이 브라우저가 처음 온 날짜만 브라우저 안에 저장해요. 정책 페이지에서 내용을 미리 본 정책도 브라우저 안에만
+          않아요. 청사진의 &ldquo;찾는 정책이 없나요?&rdquo;도 고른 분야별 횟수만 세요. 재방문을 세기 위해 이 브라우저가 처음 온 날짜만 브라우저 안에 저장해요. 정책 페이지에서 내용을 미리 본 정책도 브라우저 안에만
           기억해요 — 그 정책 카드를 열 때 처음 문장을 묻지 않기 위해서예요. 서버로 보내지 않아요.
         </p>
         <p className="mt-3 text-[15px] leading-relaxed text-graphite">

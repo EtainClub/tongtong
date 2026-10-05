@@ -6,6 +6,7 @@ export type DailyDoc = {
   visits?: { first?: number; return?: number };
   returned30?: number;
   cards?: Record<string, Record<string, number>>;
+  gaps?: Record<string, number>;
 };
 
 export type Rate = { numerator: number; denominator: number; rate: number | null };
@@ -23,6 +24,8 @@ export type MetricsReport = {
   revisitResponse: Rate;
   visits: { first: number; return: number };
   perCard: Record<string, { open: number; firstJudgment: Rate; finalJudgment: Rate; gameCorrect: Rate; sourceClick: Rate }>;
+  /** 청사진 빈칸 요청 — 역할별 기간 합계 (청사진 설계 9.4). */
+  gaps: Record<string, number>;
 };
 
 /**
@@ -64,6 +67,10 @@ export function buildReport(docs: DailyDoc[], cohortDocs: DailyDoc[], today: str
         },
       ]),
     ),
+    gaps: docs.reduce<Record<string, number>>((total, doc) => {
+      for (const [role, count] of Object.entries(doc.gaps ?? {})) total[role] = (total[role] ?? 0) + count;
+      return total;
+    }, {}),
   };
 }
 

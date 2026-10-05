@@ -42,22 +42,22 @@
 
 | 카드 | 대상 | 대본 | 카드 상태 | 영상 |
 | --- | --- | --- | --- | --- |
-| 청년미래적금 | 청년 | [young-future-savings.md](young-future-savings.md) | 공개 | 없음 |
-| 청년월세 지원 | 청년 | [youth-monthly-rent.md](youth-monthly-rent.md) | 공개 | 없음 |
-| 모두의카드 | 청년 | [everyone-transit-card.md](everyone-transit-card.md) | 공개 | 없음 |
-| 미래내일 일경험 | 청년 | [work-experience.md](work-experience.md) | 공개 | 없음 |
-| 청년문화예술패스 | 청년 | [youth-culture-pass.md](youth-culture-pass.md) | 공개 | 없음 |
-| 청년도전지원사업 | 청년 | [youth-challenge.md](youth-challenge.md) | 공개 | 없음 |
-| 청년내일저축계좌 | 청년 | [youth-tomorrow-savings.md](youth-tomorrow-savings.md) | 공개 | 없음 |
+| 청년미래적금 | 청년 | [young-future-savings.md](young-future-savings.md) | 공개 | [y2S5myRatXY](https://youtube.com/shorts/y2S5myRatXY) — 카드에 등록 |
+| 청년월세 지원 | 청년 | [youth-monthly-rent.md](youth-monthly-rent.md) | 공개 | [H9lIjlx3-rw](https://youtube.com/shorts/H9lIjlx3-rw) — 카드에 등록 |
+| 모두의카드 | 청년 | [everyone-transit-card.md](everyone-transit-card.md) | 공개 | [589Ecb3YkvQ](https://youtube.com/shorts/589Ecb3YkvQ) — 카드에 등록 |
+| 미래내일 일경험 | 청년 | [work-experience.md](work-experience.md) | 공개 | [hxLuHgKsgWA](https://youtube.com/shorts/hxLuHgKsgWA) — 카드에 등록 |
+| 청년문화예술패스 | 청년 | [youth-culture-pass.md](youth-culture-pass.md) | 공개 | [Abzn1zYFk2Q](https://youtube.com/shorts/Abzn1zYFk2Q) — 카드에 등록 |
+| 청년도전지원사업 | 청년 | [youth-challenge.md](youth-challenge.md) | 공개 | [4G-XeEnOTcA](https://youtube.com/shorts/4G-XeEnOTcA) — 카드에 등록 |
+| 청년내일저축계좌 | 청년 | [youth-tomorrow-savings.md](youth-tomorrow-savings.md) | 공개 | [AyqNRSBPJnw](https://youtube.com/shorts/AyqNRSBPJnw) — 카드에 등록 |
 | 청년일자리도약장려금 | 청년 | [youth-job-leap.md](youth-job-leap.md) | 공개 | 없음 |
-| 청년주택드림청약통장 | 청년 | [youth-housing-dream-account.md](youth-housing-dream-account.md) | **초안** — 비판·한계 없음 | 만들지 않음 |
-| 국가기술자격 응시료 지원 | 청년 | [exam-fee-support.md](exam-fee-support.md) | **초안** — 비판·한계 없음 | 만들지 않음 |
-| 고교 무상교육 | 청소년 | [high-school-free-tuition.md](high-school-free-tuition.md) | 공개 | 없음 |
-| 고교학점제 | 청소년 | [high-school-credit.md](high-school-credit.md) | 공개 | 없음 |
+| 청년주택드림청약통장 | 청년 | [youth-housing-dream-account.md](youth-housing-dream-account.md) | 공개 (2026-10-04) | [v5M3_tggxV0](https://youtube.com/shorts/v5M3_tggxV0) — 카드에 등록 |
+| 국가기술자격 응시료 지원 | 청년 | [exam-fee-support.md](exam-fee-support.md) | **초안** — 비판·한계 없음 | [RyOEl2HjlH8](https://youtube.com/shorts/RyOEl2HjlH8) — 카드에 등록, 카드가 초안이라 운영에는 안 보인다 |
+| 고교 무상교육 | 청소년 | [high-school-free-tuition.md](high-school-free-tuition.md) | 공개 | [Yl_7c6JaGPU](https://youtube.com/shorts/Yl_7c6JaGPU) — 카드에 등록 |
+| 고교학점제 | 청소년 | [high-school-credit.md](high-school-credit.md) | 공개 | [CaWjLf-nzX4](https://youtube.com/shorts/CaWjLf-nzX4) — 카드에 등록 |
 | AI 디지털교과서 | 청소년 | [ai-learning-materials.md](ai-learning-materials.md) | 공개 | [Kj3ulidRJmU](https://youtube.com/shorts/Kj3ulidRJmU) — 카드에 등록 |
-| 문화누리카드 | 청소년 | [teen-culture-nuri.md](teen-culture-nuri.md) | 공개 | 없음 |
-| 학교 밖 청소년 지원 | 청소년 | [out-of-school-youth.md](out-of-school-youth.md) | 공개 | 없음 |
+| 문화누리카드 | 청소년 | [teen-culture-nuri.md](teen-culture-nuri.md) | 공개 | [-_H4wsgU_Bk](https://youtube.com/shorts/-_H4wsgU_Bk) — 카드에 등록 |
+| 학교 밖 청소년 지원 | 청소년 | [out-of-school-youth.md](out-of-school-youth.md) | 공개 | [uKwQV9hMvRk](https://youtube.com/shorts/uKwQV9hMvRk) — 카드에 등록 |
 
-초안 카드 두 장은 비판·한계 장면이 비어 있다. 카드가 공개되기 전(`docs/counterpoint-candidates-2026-10-04.md`)에는 영상을 만들지 않는다.
+응시료 카드는 아직 비판·한계가 없어 초안이다. 영상은 먼저 올라왔고 카드 파일에도 등록했지만, 카드가 공개되기 전(`docs/counterpoint-candidates-2026-10-04.md`)에는 운영에 보이지 않는다 — 영상의 비판·한계 장면이 무엇을 말하는지 카드에 넣을 비판·한계와 맞춰 본다.
 
 모든 대본은 2026-10-04의 카드(버전 v1)에서 썼다.

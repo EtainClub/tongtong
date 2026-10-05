@@ -12,6 +12,7 @@ import type { MetricEvent } from "@/lib/metrics/events";
  *   returned30                          이 날 처음 온 사람 가운데 30일 안에 다시 온 수 (코호트 날짜 문서에 올린다)
  *   cards.{cardId}.{event}              카드별 이벤트 수
  *   cards.{cardId}.game_correct|game_wrong|game_open  게임 결과
+ *   gaps.{role}                         청사진 빈칸 요청 — 찾는 정책이 없다고 고른 역할
  */
 export async function recordMetric(event: MetricEvent, now = new Date()) {
   const today = kstDate(now);
@@ -24,6 +25,12 @@ export async function recordMetric(event: MetricEvent, now = new Date()) {
     const age = daysBetween(event.cohort, today);
     if (age < 1 || age > 30) throw new Refusal(400, "invalid-cohort");
     await db.doc(`metrics/${event.cohort}`).set({ returned30: FieldValue.increment(1) }, { merge: true });
+    return;
+  }
+
+  if (event.event === "gap_request") {
+    // role은 스키마의 정해진 목록이라 필드 경로에 그대로 써도 된다.
+    await db.doc(`metrics/${today}`).set({ gaps: { [event.role]: FieldValue.increment(1) } }, { merge: true });
     return;
   }
 

@@ -21,6 +21,8 @@ export const youthChallenge = {
     "프로그램을 마치면 참여수당도 있습니다.",
     "지금 다시 시작한다면, 무엇이 필요할까요?",
   ],
+  // docs/shorts/youth-challenge.md 대본으로 만든 영상 (2026-10-05 등록).
+  video: { youtubeId: "4G-XeEnOTcA" },
 
   flow: { trust: true, opinion: true },
 

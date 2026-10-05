@@ -17,6 +17,8 @@ export const highSchoolCredit = {
     "2026년, 기준이 바뀌었습니다.",
     "선택과목은 이제 무엇만 채우면 될까요?",
   ],
+  // docs/shorts/high-school-credit.md 대본으로 만든 영상 (2026-10-05 등록).
+  video: { youtubeId: "CaWjLf-nzX4" },
 
   flow: { trust: true, opinion: true },
 

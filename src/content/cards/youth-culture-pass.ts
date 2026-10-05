@@ -23,6 +23,8 @@ export const youthCulturePass = {
     "19~20세 청년에게 문화비를 지원합니다. 사는 곳에 따라 금액이 다릅니다.",
     "나도 받을 수 있을까요?",
   ],
+  // docs/shorts/youth-culture-pass.md 대본으로 만든 영상 (2026-10-05 등록).
+  video: { youtubeId: "Abzn1zYFk2Q" },
 
   flow: { trust: true, opinion: true },
 

@@ -18,6 +18,7 @@ import { certaintyOf, endsBefore, offSeason, seasonMonths } from "@/lib/blueprin
 import { ageRangeAt, blueprintStageAt } from "@/lib/blueprint/check";
 import { MAX_HORIZON_YEARS, STATUS_TRANSITIONS, type Blueprint, type Milestone, type Placement } from "@/lib/blueprint/model";
 import { addMonths, monthIndex } from "@/lib/blueprint/month";
+import { track } from "@/lib/metrics/track";
 import { markFactsSeen } from "@/lib/seen-facts";
 
 /*
@@ -271,7 +272,51 @@ export function AddPolicy({ blueprint, nowMonth, busy, onOps, initial }: SheetPr
         ))}
         {policies.length === 0 && <li className="border-t border-stone py-4 text-graphite">이 역할로 등록된 정책이 아직 없어요.</li>}
       </ul>
+      <GapRequest key={role ?? "all"} initial={role} />
     </div>
+  );
+}
+
+/**
+ * "찾는 정책이 없나요?" — 어떤 일에 쓸 정책을 찾았는지 역할 하나만 센다 (청사진 설계 7.6·9.4 빈칸 요청).
+ * 글을 받지 않는다 — 사정이 섞인다. 누가 골랐는지도 남기지 않는다(측정 이벤트, 날짜별 합계).
+ * 이 시트에서 한 번만 보낸다.
+ */
+function GapRequest({ initial }: { initial: (typeof PlacementRole.options)[number] | null }) {
+  const [pick, setPick] = useState(initial);
+  const [sent, setSent] = useState(false);
+  return (
+    <details className="mt-6 rounded-card border border-stone p-4">
+      <summary className="disclosure text-[15px] font-semibold">찾는 정책이 없나요?</summary>
+      {sent ? (
+        <p role="status" className="mt-3 text-[14px] text-graphite">
+          세어 둘게요. 다음에 쓸 정책의 순서를 정할 때 봐요.
+        </p>
+      ) : (
+        <>
+          <p className="mt-2 text-[14px] text-graphite">어떤 일에 쓸 정책을 찾았나요? 고른 것만 세고, 누가 골랐는지는 남기지 않아요.</p>
+          <div role="radiogroup" aria-label="찾는 정책이 하는 일" className="mt-3 flex flex-wrap gap-2">
+            {PlacementRole.options.map((option) => (
+              <Chip key={option} role="radio" selected={pick === option} onClick={() => setPick(option)}>
+                {PLACEMENT_ROLE_LABELS[option]}
+              </Chip>
+            ))}
+          </div>
+          <button
+            type="button"
+            disabled={!pick}
+            onClick={() => {
+              if (!pick) return;
+              track({ event: "gap_request", role: pick });
+              setSent(true);
+            }}
+            className="mt-4 rounded-pill border border-ink px-5 py-2.5 disabled:opacity-40"
+          >
+            알리기
+          </button>
+        </>
+      )}
+    </details>
   );
 }
 

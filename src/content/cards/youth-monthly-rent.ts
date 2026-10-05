@@ -21,6 +21,8 @@ export const youthMonthlyRent = {
     "계산하면 최대 480만 원입니다.",
     "그런데 나는 대상일까요?",
   ],
+  // docs/shorts/youth-monthly-rent.md 대본으로 만든 영상 (2026-10-05 등록).
+  video: { youtubeId: "H9lIjlx3-rw" },
 
   flow: { trust: true, opinion: true },
 

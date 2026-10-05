@@ -5,6 +5,7 @@
  * 에뮬레이터로 보려면 FIRESTORE_EMULATOR_HOST를 넣고 실행한다.
  */
 import { CARDS } from "../src/content/cards";
+import { PLACEMENT_ROLE_LABELS } from "../src/features/labels";
 import type { Blueprint, Version } from "../src/lib/blueprint/model";
 import { kstDate } from "../src/lib/date";
 import { db } from "../src/lib/firebase/admin";
@@ -46,6 +47,13 @@ async function main() {
   }
 
   printBlueprints(buildBlueprintReport(await readBlueprints(), new Date()), frac);
+
+  // 청사진 "찾는 정책이 없나요?" — 다음에 쓸 항목의 순서 (청사진 설계 9.4). 역할과 횟수만.
+  const gaps = Object.entries(report.gaps).sort((a, b) => b[1] - a[1]);
+  console.log(`\n빈칸 요청 (최근 ${days}일)${gaps.length ? "" : "  없음"}`);
+  for (const [role, count] of gaps) {
+    console.log(`  ${(PLACEMENT_ROLE_LABELS[role as keyof typeof PLACEMENT_ROLE_LABELS] ?? role).padEnd(14)} ${String(count).padStart(4)}`);
+  }
   console.log("");
 }
 

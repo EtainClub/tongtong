@@ -19,6 +19,8 @@ export const highSchoolFreeTuition = {
     "그런데 정부가 내는 몫이 달라지고 있습니다.",
     "앞으로는 누가 낼까요?",
   ],
+  // docs/shorts/high-school-free-tuition.md 대본으로 만든 영상 (2026-10-05 등록).
+  video: { youtubeId: "Yl_7c6JaGPU" },
 
   flow: { trust: true, opinion: true },
 

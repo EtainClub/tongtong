@@ -20,6 +20,8 @@ export const youthHousingDreamAccount = {
     "무주택자라면 청년 전용 청약통장에 가입할 수 있습니다.",
     "나는 가입 가능할까요?",
   ],
+  // docs/shorts/youth-housing-dream-account.md 대본으로 만든 영상 (2026-10-05 등록).
+  video: { youtubeId: "v5M3_tggxV0" },
 
   flow: { trust: true, opinion: true },
 

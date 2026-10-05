@@ -22,6 +22,8 @@ export const examFeeSupport = {
     "하지만 무제한은 아닙니다.",
     "1년에 몇 번까지 가능할까요?",
   ],
+  // docs/shorts/exam-fee-support.md 대본으로 만든 영상 (2026-10-05 등록).
+  video: { youtubeId: "RyOEl2HjlH8" },
 
   flow: { trust: true, opinion: true },
 
