@@ -20,6 +20,8 @@ export const youthJobLeap = {
     "2026년에는 수도권과 비수도권이 나뉘었습니다.",
     "이 돈은 누구에게 가는 걸까요?",
   ],
+  // docs/shorts/youth-job-leap.md 대본으로 만든 영상 (2026-10-08 등록).
+  video: { youtubeId: "fo5kTfrKuyU" },
 
   flow: { trust: true, opinion: true },
 

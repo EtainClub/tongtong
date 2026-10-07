@@ -5,6 +5,7 @@ import type { CardExperienceInput } from "../schema";
  *
  * 원 컨셉의 "월 15회 이상 이용" 조건은 2026년 국토부 안내에서 확인되지 않았다 — 넣지 않았다.
  * 기준금액 50% 인하는 "9월 이용분까지"라 validUntil로 둔다. 10월부터 화면에 "기준일 지남"이 뜬다.
+ * v2(2026-10-08): 인하 종료(half-price-ended)와 모두의그린카드 출시(green-card)를 더했다 — 저장한 사람에게 "새 정보".
  * 게임은 사용자가 이미 아는 숫자(월 교통비)로 환급액을 맞힌다 — 비율이 돈으로 바뀌는 순간이 반전.
  */
 export const everyoneTransitCard = {
@@ -47,7 +48,7 @@ export const everyoneTransitCard = {
     claimIds: ["basic-rate", "off-peak", "calc-120k"],
   },
 
-  reveal: { claimIds: ["basic-rate", "calc-120k", "off-peak", "off-peak-extended", "flat-types", "half-price", "register"] },
+  reveal: { claimIds: ["basic-rate", "calc-120k", "off-peak", "off-peak-extended", "flat-types", "half-price", "half-price-ended", "register", "green-card"] },
 
   suggestedQuestions: ["출퇴근 시간을 바꾸면 왜 더 받지?", "일반형이랑 플러스형은 뭐가 달라?", "기준금액 인하는 언제까지야?", "어떻게 신청해?"],
 } satisfies CardExperienceInput;

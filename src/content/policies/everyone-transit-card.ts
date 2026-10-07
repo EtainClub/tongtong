@@ -44,6 +44,15 @@ export const everyoneTransitCard = {
       license: "link-only",
     },
     {
+      id: "newspim-2026-09-21",
+      title: "'모두의카드+그린카드' 한 장에…10월부터 6개 카드사서 발급",
+      url: "https://newspim.com/news/view/20260921000156",
+      publisher: "뉴스핌",
+      publishedAt: "2026-09-21",
+      type: "press",
+      license: "link-only",
+    },
+    {
       id: "khan-2024-10-06",
       title: "K-패스 예산 바닥난다…알뜰교통카드 '환급 대란' 재현되나",
       url: "https://www.khan.co.kr/article/202410061449001",
@@ -83,6 +92,20 @@ export const everyoneTransitCard = {
       verified: true,
       sourceIds: ["korea-half-price", "korea-2026-09-28"],
       validUntil: "2026-09-30",
+    },
+    {
+      id: "half-price-ended",
+      text: "일반형·플러스형(정액형) 환급 기준금액 50% 인하는 계획대로 9월 이용분까지만 적용됐다. 10월 이용분부터는 인하 없이 원래 기준금액이 적용된다.",
+      assertionType: "FACT",
+      verified: true,
+      sourceIds: ["korea-2026-09-28"],
+    },
+    {
+      id: "green-card",
+      text: "국토교통부 대도시권광역교통위원회와 기후에너지환경부는 대중교통비 환급과 그린카드 혜택(친환경·저탄소 제품 구매 인센티브, 공공시설 요금 할인 등)을 카드 한 장으로 받는 '모두의그린카드'를 10월부터 BC카드·광주은행·제주은행·경남은행·수협·IM뱅크 등 6개 카드사에서 출시한다고 밝혔다. 발급 조건과 세부 혜택은 카드사마다 다를 수 있다.",
+      assertionType: "FACT",
+      verified: true,
+      sourceIds: ["newspim-2026-09-21"],
     },
     {
       id: "off-peak",
@@ -131,6 +154,15 @@ export const everyoneTransitCard = {
     roles: ["living"],
   },
 
-  revisions: [{ version: 1, date: "2026-09-29", material: true, summary: "첫 작성", claimIds: [] }],
-  reviewedAt: "2026-09-30",
+  revisions: [
+    { version: 1, date: "2026-09-29", material: true, summary: "첫 작성", claimIds: [] },
+    {
+      version: 2,
+      date: "2026-10-08",
+      material: true,
+      summary: "10월 이용분부터 기준금액 50% 인하가 끝나 원래 기준금액이 적용된다. 모두의카드와 그린카드를 한 장으로 받는 '모두의그린카드'가 10월부터 출시된다.",
+      claimIds: ["half-price-ended", "green-card"],
+    },
+  ],
+  reviewedAt: "2026-10-08",
 } satisfies PolicyInput;

@@ -49,7 +49,7 @@
 | 청년문화예술패스 | 청년 | [youth-culture-pass.md](youth-culture-pass.md) | 공개 | [Abzn1zYFk2Q](https://youtube.com/shorts/Abzn1zYFk2Q) — 카드에 등록 |
 | 청년도전지원사업 | 청년 | [youth-challenge.md](youth-challenge.md) | 공개 | [4G-XeEnOTcA](https://youtube.com/shorts/4G-XeEnOTcA) — 카드에 등록 |
 | 청년내일저축계좌 | 청년 | [youth-tomorrow-savings.md](youth-tomorrow-savings.md) | 공개 | [AyqNRSBPJnw](https://youtube.com/shorts/AyqNRSBPJnw) — 카드에 등록 |
-| 청년일자리도약장려금 | 청년 | [youth-job-leap.md](youth-job-leap.md) | 공개 | 없음 |
+| 청년일자리도약장려금 | 청년 | [youth-job-leap.md](youth-job-leap.md) | 공개 | [fo5kTfrKuyU](https://youtube.com/shorts/fo5kTfrKuyU) — 카드에 등록 |
 | 청년주택드림청약통장 | 청년 | [youth-housing-dream-account.md](youth-housing-dream-account.md) | 공개 (2026-10-04) | [v5M3_tggxV0](https://youtube.com/shorts/v5M3_tggxV0) — 카드에 등록 |
 | 국가기술자격 응시료 지원 | 청년 | [exam-fee-support.md](exam-fee-support.md) | **초안** — 비판·한계 없음 | [RyOEl2HjlH8](https://youtube.com/shorts/RyOEl2HjlH8) — 카드에 등록, 카드가 초안이라 운영에는 안 보인다 |
 | 고교 무상교육 | 청소년 | [high-school-free-tuition.md](high-school-free-tuition.md) | 공개 | [Yl_7c6JaGPU](https://youtube.com/shorts/Yl_7c6JaGPU) — 카드에 등록 |
