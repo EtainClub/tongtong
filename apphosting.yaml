@@ -44,6 +44,11 @@ env:
     value: "1:496695820528:web:384ce1e6792b188af44235"
     availability: [BUILD, RUNTIME]
 
+  # 온통청년 청년정책 API — 지역 정책 목록(docs/regional-benefits-review.md). 서버만 쓴다, 키는 Secret Manager.
+  - variable: YOUTHCENTER_API_KEY
+    secret: YOUTHCENTER_API_KEY
+    availability: [RUNTIME]
+
   # AI 따져보기. 키는 Secret Manager에 있다. 모델과 한도는 재배포 없이 여기서 조인다.
   - variable: ANTHROPIC_API_KEY
     secret: ANTHROPIC_API_KEY

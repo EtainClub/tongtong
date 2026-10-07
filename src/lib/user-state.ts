@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { findDistrict, findSido } from "@/content/regions";
 import { Audience, Category, LifeStage } from "@/content/schema";
 import type { JudgmentInput, JudgmentWithout } from "@/lib/judgment";
 
@@ -27,7 +28,17 @@ export const profileInput = z.object({
   consentOpinion: z.boolean().optional(),
   /** 청소년 트랙: 만 14세 이상인지 본인이 확인했다. 만 14세 미만은 받지 않는다 (개인정보 보호법 22조의2). */
   over14: z.boolean().optional(),
+  /**
+   * 사는 지역 — 시·도(법정동코드 앞 2자리)와 시·군·구(앞 5자리, 선택). 지역 정책을 보여 주는 데만 쓴다
+   * (docs/regional-benefits-review.md). 생략하면 기존 값을 유지하고, null이면 지운다.
+   */
+  region: z
+    .object({ sido: z.string().regex(/^\d{2}$/), sigungu: z.string().regex(/^\d{5}$/).optional() })
+    .strict()
+    .nullable()
+    .optional(),
 });
+export type Region = { sido: string; sigungu?: string };
 export type ProfileInput = z.infer<typeof profileInput>;
 
 export type Profile = {
@@ -39,6 +50,8 @@ export type Profile = {
   over14ConfirmedAt?: string;
   /** 동의한 시각. null이면 정책 평가를 서버에 저장하지 않는다. */
   consent: { opinion: string | null };
+  /** 사는 지역 (선택). 청년만 — 청소년은 두지 않는다. */
+  region?: Region;
 };
 
 
@@ -47,7 +60,8 @@ export class ProfileRejection extends Error {
     public readonly code:
       | "over14-required" // 청소년은 만 14세 이상 확인이 있어야 한다
       | "youth-opinion-local" // 청소년의 정책 평가는 기기에만 둔다 — 저장 동의를 받지 않는다
-      | "audience-downgrade", // 청년이 청소년으로 돌아갈 수는 없다
+      | "audience-downgrade" // 청년이 청소년으로 돌아갈 수는 없다
+      | "unknown-region", // 시·도·시·군·구 목록(content/regions)에 없는 코드
   ) {
     super(code);
   }
@@ -61,13 +75,18 @@ export class ProfileRejection extends Error {
  *   - 정책 평가는 저장하지 않는다 — 동의 자체를 받지 않는다. 정치적 견해로 볼 수 있는 값을 미성년자에게서 모으지 않는다.
  *   - 생활 상황은 청년용 목록이라 비운다.
  * 청소년 → 청년 전환은 된다. 기록은 그대로 이어진다 (설계 50장). 거꾸로는 안 된다.
- * 생략한 관심 주제·동의는 앞의 값을 지킨다.
+ * 생략한 관심 주제·동의·지역은 앞의 값을 지킨다.
+ * 지역은 청년만 둔다 — 청소년의 거주지는 받지 않는다(지역 정책 목록이 청년 정책이다). 목록에 없는 코드는 거절한다.
  */
 export function nextProfile(previous: Profile | null, input: ProfileInput, now: Date): Profile {
   const youth = input.audienceType === "youth";
   if (youth && previous?.audienceType === "young_adult") throw new ProfileRejection("audience-downgrade");
   if (youth && !input.over14 && !previous?.over14ConfirmedAt) throw new ProfileRejection("over14-required");
   if (youth && input.consentOpinion) throw new ProfileRejection("youth-opinion-local");
+  if (input.region && (!findSido(input.region.sido) || (input.region.sigungu && !findDistrict(input.region.sido, input.region.sigungu)))) {
+    throw new ProfileRejection("unknown-region");
+  }
+  const region = youth ? undefined : input.region === undefined ? previous?.region : (input.region ?? undefined);
 
   const kept = previous?.consent.opinion ?? null;
   const consent = youth ? null : input.consentOpinion === undefined ? kept : input.consentOpinion ? (kept ?? now.toISOString()) : null;
@@ -79,6 +98,7 @@ export function nextProfile(previous: Profile | null, input: ProfileInput, now: 
     interests: input.interests ?? previous?.interests ?? [],
     consent: { opinion: consent },
     ...(over14ConfirmedAt ? { over14ConfirmedAt } : {}),
+    ...(region ? { region: { sido: region.sido, ...(region.sigungu && { sigungu: region.sigungu }) } } : {}),
   };
 }
 // ── 카드 상태 ────────────────────────────────────────────────────────

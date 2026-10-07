@@ -9,6 +9,7 @@ import { Category } from "@/content/schema";
 import { CATEGORY_LABELS, formatDate, LIFE_STAGE_LABELS } from "@/features/labels";
 import { InstallGuide } from "@/features/me/InstallGuide";
 import { NotificationSettings } from "@/features/me/NotificationSettings";
+import { RegionSetting } from "@/features/me/RegionSetting";
 import { useBlueprintChecks } from "@/features/plan/useBlueprintChecks";
 import { Notice } from "@/features/ui/Notice";
 import { apiFetch, describeError } from "@/lib/firebase/api";
@@ -174,6 +175,7 @@ export function MyRecords() {
           바꾸기
         </Link>
       </section>
+      {!isYouth && data.profile && <RegionSetting user={user} profile={data.profile} />}
 
       <h2 className="mt-12 text-[13px] font-semibold text-smoke">설정과 기록 관리</h2>
 

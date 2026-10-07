@@ -28,6 +28,16 @@ const enabled = Boolean(process.env.FIRESTORE_EMULATOR_HOST && process.env.FIREB
     await db.recursiveDelete(db.collection("corrections"));
   });
 
+  test("지역 — 저장하고, 생략하면 남고, null이면 문서에서 지운다", async () => {
+    await store.saveProfile(uid, { audienceType: "young_adult", lifeStages: [], region: { sido: "11", sigungu: "11440" } });
+    const profile = async () => (await db.doc(`users/${uid}`).get()).data();
+    expect((await profile())?.region).toEqual({ sido: "11", sigungu: "11440" });
+    await store.saveProfile(uid, { audienceType: "young_adult", lifeStages: ["college"] });
+    expect((await profile())?.region).toEqual({ sido: "11", sigungu: "11440" });
+    await store.saveProfile(uid, { audienceType: "young_adult", lifeStages: ["college"], region: null });
+    expect((await profile())?.region).toBeUndefined();
+  });
+
   test("판단이 카드 상태 문서에 쌓이고, 재시도는 한 번만 반영된다", async () => {
     await store.saveProfile(uid, { audienceType: "young_adult", lifeStages: [], consentOpinion: true });
     await store.recordJudgment(uid, trust);

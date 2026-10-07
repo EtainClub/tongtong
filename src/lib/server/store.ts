@@ -90,7 +90,13 @@ export async function saveProfile(uid: string, input: ProfileInput): Promise<Pro
     throw error;
   }
   await userRef(uid).set(
-    { ...profile, updatedAt: FieldValue.serverTimestamp(), ...(previousDoc.exists ? {} : { createdAt: FieldValue.serverTimestamp() }) },
+    {
+      ...profile,
+      // merge는 빠진 필드를 남겨 둔다 — 지역을 지웠으면 문서에서도 지운다.
+      ...(previous?.region && !profile.region ? { region: FieldValue.delete() } : {}),
+      updatedAt: FieldValue.serverTimestamp(),
+      ...(previousDoc.exists ? {} : { createdAt: FieldValue.serverTimestamp() }),
+    },
     { merge: true },
   );
 

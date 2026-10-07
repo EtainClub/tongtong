@@ -49,6 +49,13 @@ export function FeedDone({ audience, cards, states, now }: { audience: Audience;
           <span className="mt-1 block text-[14px] text-graphite">박사 진학·창업 같은 목표를 정하면, 언제 어떤 정책을 쓸지 시간축에 놓아 볼 수 있어요.</span>
         </Link>
       )}
+      {/* 지자체 청년 정책 — 온통청년 공식 데이터 (docs/regional-benefits-review.md). 청년만. */}
+      {audience === "young_adult" && (
+        <Link href="/regional" className="mt-3 block rounded-card border border-stone p-5 hover:border-graphite">
+          <span className="block text-[17px]">우리 지역 청년 정책 →</span>
+          <span className="mt-1 block text-[14px] text-graphite">사는 지역의 시·도, 시·군·구 청년 정책을 모아 봐요. 공식 데이터를 그대로 옮긴 목록이에요.</span>
+        </Link>
+      )}
 
       {schedule.length > 0 && (
         <div className="mt-10">
