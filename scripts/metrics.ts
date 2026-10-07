@@ -10,7 +10,10 @@ import type { Blueprint, Version } from "../src/lib/blueprint/model";
 import { kstDate } from "../src/lib/date";
 import { db } from "../src/lib/firebase/admin";
 import { buildBlueprintReport, PLACEMENT_MIN, REVISE_WINDOW_DAYS, type BlueprintReport, type BlueprintWithVersions } from "../src/lib/metrics/blueprint-report";
-import { buildReport, reportDates, type DailyDoc, type Rate } from "../src/lib/metrics/report";
+import { buildReport, reportDates, topRegionalPolicies, type DailyDoc, type Rate, type RegionalDailyDoc } from "../src/lib/metrics/report";
+import { youthcenterPolicy } from "../src/lib/server/youthcenter";
+
+const REGIONAL_TOP = 20;
 
 const days = Number(process.argv[2] ?? 7);
 const today = kstDate();
@@ -54,7 +57,36 @@ async function main() {
   for (const [role, count] of gaps) {
     console.log(`  ${(PLACEMENT_ROLE_LABELS[role as keyof typeof PLACEMENT_ROLE_LABELS] ?? role).padEnd(14)} ${String(count).padStart(4)}`);
   }
+
+  await printRegional(report.regionalOpen);
   console.log("");
+}
+
+/**
+ * 우리 지역 청년 정책 — 목록 열람과 원문을 많이 연 정책. 항목으로 올릴 순서 (지역 검토 R2).
+ * 이름은 온통청년에서 정책 번호로 찾는다(인증키: 환경 변수 또는 .env.local). 키가 없으면 번호만.
+ */
+async function printRegional(opens: number) {
+  const snapshots = await db.getAll(...period.map((date) => db.doc(`metricsRegional/${date}`)));
+  const top = topRegionalPolicies(
+    snapshots.filter((s) => s.exists).map((s) => s.data() as RegionalDailyDoc),
+    REGIONAL_TOP,
+  );
+  console.log(`\n우리 지역 청년 정책 (최근 ${days}일)  목록 열람 ${opens}${top.length ? `  원문 많이 연 정책 ${top.length}개` : "  원문 열기 없음"}`);
+  if (!top.length) return;
+  if (!process.env.YOUTHCENTER_API_KEY) {
+    try {
+      process.loadEnvFile(".env.local");
+    } catch {
+      // .env.local이 없으면 번호만 보여 준다.
+    }
+  }
+  for (const [id, count] of top) {
+    // 온통청년은 짧은 시간의 여러 요청을 거절한다 — 하나씩.
+    const policy = process.env.YOUTHCENTER_API_KEY ? await youthcenterPolicy(id).catch(() => null) : null;
+    const where = policy?.rgtrHghrkInstCdNm || policy?.rgtrInstCdNm || "";
+    console.log(`  ${String(count).padStart(4)}  ${id}  ${policy ? `${policy.plcyNm}${where ? ` (${where})` : ""}` : "—"}`);
+  }
 }
 
 /**

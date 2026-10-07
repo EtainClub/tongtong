@@ -13,6 +13,8 @@ import type { MetricEvent } from "@/lib/metrics/events";
  *   cards.{cardId}.{event}              카드별 이벤트 수
  *   cards.{cardId}.game_correct|game_wrong|game_open  게임 결과
  *   gaps.{role}                         청사진 빈칸 요청 — 찾는 정책이 없다고 고른 역할
+ *   regionalOpen                        우리 지역 청년 정책 목록 열람
+ * 지역 정책 원문 열기는 metricsRegional/{KST 날짜}의 policies.{온통청년 정책 번호}에 따로 쌓는다.
  */
 export async function recordMetric(event: MetricEvent, now = new Date()) {
   const today = kstDate(now);
@@ -31,6 +33,16 @@ export async function recordMetric(event: MetricEvent, now = new Date()) {
   if (event.event === "gap_request") {
     // role은 스키마의 정해진 목록이라 필드 경로에 그대로 써도 된다.
     await db.doc(`metrics/${today}`).set({ gaps: { [event.role]: FieldValue.increment(1) } }, { merge: true });
+    return;
+  }
+
+  if (event.event === "regional_open") {
+    await db.doc(`metrics/${today}`).set({ regionalOpen: FieldValue.increment(1) }, { merge: true });
+    return;
+  }
+  if (event.event === "regional_policy_open") {
+    // 정책 번호는 정해진 목록이 없다(모양만 검사) — 아무 번호나 와도 하루 지표 문서가 커지지 않게 따로 둔다.
+    await db.doc(`metricsRegional/${today}`).set({ policies: { [event.policyId]: FieldValue.increment(1) } }, { merge: true });
     return;
   }
 

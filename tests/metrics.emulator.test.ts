@@ -11,6 +11,7 @@ const enabled = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
 
   afterAll(async () => {
     await db.recursiveDelete(db.collection("metrics"));
+    await db.recursiveDelete(db.collection("metricsRegional"));
   });
 
   test("날짜별·카드별 합계만 쌓인다", async () => {
@@ -30,6 +31,15 @@ const enabled = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
     expect((await read("2026-09-20")).returned30).toBe(1);
     await expect(recordMetric({ event: "returned", cohort: "2026-08-01" }, now)).rejects.toMatchObject({ status: 400 });
     await expect(recordMetric({ event: "returned", cohort: "2026-10-01" }, now)).rejects.toMatchObject({ status: 400 });
+  });
+
+  test("지역 목록 열람은 하루 문서에, 정책별 원문 열기는 따로 쌓인다", async () => {
+    const day = new Date("2026-10-02T12:00:00+09:00");
+    await recordMetric({ event: "regional_open" }, day);
+    await recordMetric({ event: "regional_policy_open", policyId: "20261007005400213925" }, day);
+    await recordMetric({ event: "regional_policy_open", policyId: "20261007005400213925" }, day);
+    expect(await read("2026-10-02")).toEqual({ regionalOpen: 1 });
+    expect((await db.doc("metricsRegional/2026-10-02").get()).data()).toEqual({ policies: { "20261007005400213925": 2 } });
   });
 
   test("모르는 카드는 받지 않는다 — 필드 경로에 들어가는 값이다", async () => {

@@ -10,6 +10,7 @@ import { Notice } from "@/features/ui/Notice";
 import { kstDate } from "@/lib/date";
 import { apiFetch, describeError } from "@/lib/firebase/api";
 import { useAuth } from "@/lib/firebase/auth";
+import { track } from "@/lib/metrics/track";
 import { useUserData } from "@/lib/firebase/user-data";
 import { regionLabel, useRegion } from "@/lib/region";
 import { applyState, type ApplyState, type RegionalPolicy } from "@/lib/regional";
@@ -63,6 +64,9 @@ function List({ user, region }: { user: User; region: Region }) {
   const [error, setError] = useState<string | null>(null);
   const [category, setCategory] = useState<string | null>(null);
   const [today] = useState(() => kstDate());
+
+  // 열람 수만 — 지역은 싣지 않는다.
+  useEffect(() => track({ event: "regional_open" }), []);
 
   useEffect(() => {
     let live = true;
@@ -171,7 +175,13 @@ function PolicyRow({ policy, state, sidoName }: { policy: RegionalPolicy; state:
     <li className="border-t border-stone py-4">
       <p className="text-[16px] font-medium">
         {policy.url ? (
-          <a href={policy.url} target="_blank" rel="noopener noreferrer" className="underline-offset-4 hover:underline">
+          <a
+            href={policy.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => track({ event: "regional_policy_open", policyId: policy.id })}
+            className="underline-offset-4 hover:underline"
+          >
             {policy.name} <span className="text-[13px] text-smoke">↗</span>
           </a>
         ) : (

@@ -21,17 +21,18 @@ const TTL_MS = 24 * 60 * 60 * 1000;
 
 type Page = { totCount: number; list: YouthcenterPolicy[] };
 
-async function fetchPage(zipCd: string, pageNum: number, attempt = 1): Promise<Page> {
+/** filter는 `zipCd=41111`이나 `plcyNo=…` 같은 조건 하나. */
+async function fetchPage(filter: string, pageNum: number, attempt = 1): Promise<Page> {
   const key = process.env.YOUTHCENTER_API_KEY;
   if (!key) throw new Refusal(503, "regional-unavailable");
-  const url = `${ENDPOINT}?apiKeyNm=${encodeURIComponent(key)}&pageNum=${pageNum}&pageSize=${PAGE_SIZE}&rtnType=json&zipCd=${zipCd}`;
+  const url = `${ENDPOINT}?apiKeyNm=${encodeURIComponent(key)}&pageNum=${pageNum}&pageSize=${PAGE_SIZE}&rtnType=json&${filter}`;
   const response = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(20_000) }).catch(() => null);
   const json = response ? ((await response.json().catch(() => null)) as { result?: { pagging?: { totCount?: number }; youthPolicyList?: YouthcenterPolicy[] } } | null) : null;
   if (!response?.ok || !json?.result) {
     // 한 번만 다시 — 잠깐 쉬었다가.
     if (attempt < 2) {
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      return fetchPage(zipCd, pageNum, attempt + 1);
+      return fetchPage(filter, pageNum, attempt + 1);
     }
     throw new Refusal(502, "regional-upstream");
   }
@@ -40,11 +41,17 @@ async function fetchPage(zipCd: string, pageNum: number, attempt = 1): Promise<P
 
 /** zipCd 하나의 전체 목록 — 대개 첫 쪽에 다 있다. 넘치면 다음 쪽을 차례로. */
 async function fetchAll(zipCd: string): Promise<YouthcenterPolicy[]> {
-  const first = await fetchPage(zipCd, 1);
+  const first = await fetchPage(`zipCd=${zipCd}`, 1);
   const list = [...first.list];
   const pages = Math.min(MAX_PAGES, Math.ceil(first.totCount / PAGE_SIZE));
-  for (let page = 2; page <= pages; page++) list.push(...(await fetchPage(zipCd, page)).list);
+  for (let page = 2; page <= pages; page++) list.push(...(await fetchPage(`zipCd=${zipCd}`, page)).list);
   return list;
+}
+
+/** 정책 번호 하나의 원 데이터 — `pnpm metrics`가 많이 열린 지역 정책의 이름을 찾는다. 없으면 null. */
+export async function youthcenterPolicy(plcyNo: string): Promise<YouthcenterPolicy | null> {
+  if (!/^\d{20}$/.test(plcyNo)) return null;
+  return (await fetchPage(`plcyNo=${plcyNo}`, 1)).list.find((policy) => policy.plcyNo === plcyNo) ?? null;
 }
 
 const cache = new Map<string, { at: number; value: Promise<RegionalPolicy[]> }>();

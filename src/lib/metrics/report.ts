@@ -7,7 +7,11 @@ export type DailyDoc = {
   returned30?: number;
   cards?: Record<string, Record<string, number>>;
   gaps?: Record<string, number>;
+  regionalOpen?: number;
 };
+
+/** metricsRegional/{날짜} 문서 하나 — 지역 정책 원문 열기 (lib/metrics/store). */
+export type RegionalDailyDoc = { policies?: Record<string, number> };
 
 export type Rate = { numerator: number; denominator: number; rate: number | null };
 const rate = (numerator: number, denominator: number): Rate => ({ numerator, denominator, rate: denominator > 0 ? numerator / denominator : null });
@@ -26,6 +30,8 @@ export type MetricsReport = {
   perCard: Record<string, { open: number; firstJudgment: Rate; finalJudgment: Rate; gameCorrect: Rate; sourceClick: Rate }>;
   /** 청사진 빈칸 요청 — 역할별 기간 합계 (청사진 설계 9.4). */
   gaps: Record<string, number>;
+  /** 우리 지역 청년 정책 목록 열람 — 기간 합계 (지역 검토 R2). */
+  regionalOpen: number;
 };
 
 /**
@@ -71,7 +77,15 @@ export function buildReport(docs: DailyDoc[], cohortDocs: DailyDoc[], today: str
       for (const [role, count] of Object.entries(doc.gaps ?? {})) total[role] = (total[role] ?? 0) + count;
       return total;
     }, {}),
+    regionalOpen: docs.reduce((s, d) => s + (d.regionalOpen ?? 0), 0),
   };
+}
+
+/** 지역 정책별 원문 열기 — 기간 합계, 많은 순으로 limit개. */
+export function topRegionalPolicies(docs: RegionalDailyDoc[], limit: number): [string, number][] {
+  const total = new Map<string, number>();
+  for (const doc of docs) for (const [id, count] of Object.entries(doc.policies ?? {})) total.set(id, (total.get(id) ?? 0) + count);
+  return [...total].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, limit);
 }
 
 /** 기간 문서 날짜들과 30일 재방문 코호트 날짜들. */

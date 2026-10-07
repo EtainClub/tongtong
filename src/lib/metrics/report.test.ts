@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildReport, reportDates, type DailyDoc } from "./report";
+import { buildReport, reportDates, topRegionalPolicies, type DailyDoc } from "./report";
 
 describe("buildReport", () => {
   it("여섯 지표를 합계에서 계산한다", () => {
@@ -34,6 +34,12 @@ describe("buildReport", () => {
     ];
     expect(buildReport(docs, [], "2026-10-02").gaps).toEqual({ housing: 3, funding: 1 });
     expect(buildReport([], [], "2026-10-02").gaps).toEqual({});
+  });
+
+  it("지역 목록 열람과 정책별 원문 열기는 기간 합계", () => {
+    expect(buildReport([{ date: "2026-10-01", regionalOpen: 3 }, { date: "2026-10-02" }], [], "2026-10-02").regionalOpen).toBe(3);
+    const top = topRegionalPolicies([{ policies: { a: 1, b: 2 } }, { policies: { a: 3, c: 1 } }, {}], 2);
+    expect(top).toEqual([["a", 4], ["b", 2]]);
   });
 
   it("분모가 0이면 비율을 만들지 않는다", () => {

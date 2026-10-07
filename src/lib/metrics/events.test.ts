@@ -18,6 +18,15 @@ describe("metricEventSchema", () => {
     expect(metricEventSchema.safeParse({ event: "gap_request", role: "housing", uid: "abc" }).success).toBe(false);
   });
 
+  it("지역 목록은 정책 번호만 — 지역·사용자 id는 실을 수 없다", () => {
+    expect(metricEventSchema.safeParse({ event: "regional_open" }).success).toBe(true);
+    expect(metricEventSchema.safeParse({ event: "regional_open", sido: "41" }).success).toBe(false);
+    expect(metricEventSchema.safeParse({ event: "regional_policy_open", policyId: "20261007005400213925" }).success).toBe(true);
+    expect(metricEventSchema.safeParse({ event: "regional_policy_open", policyId: "2026100700540021392" }).success).toBe(false);
+    expect(metricEventSchema.safeParse({ event: "regional_policy_open", policyId: "../../users/abc" }).success).toBe(false);
+    expect(metricEventSchema.safeParse({ event: "regional_policy_open", policyId: "20261007005400213925", sigungu: "41110" }).success).toBe(false);
+  });
+
   it("판단 값·이유·생활 상황·사용자 id는 실을 수 없다", () => {
     for (const extra of [{ value: 4 }, { reasonCodes: ["helps"] }, { lifeStages: ["college"] }, { uid: "abc" }]) {
       expect(metricEventSchema.safeParse({ event: "final_done", cardId: "youth-job-leap", ...extra }).success).toBe(false);

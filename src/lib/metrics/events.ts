@@ -16,6 +16,7 @@ import { PlacementRole } from "@/content/schema";
  *   재평가 응답률    revisit_done / revisit_open
  *
  * 지표 밖: gap_request — 청사진에서 찾는 정책이 없다고 고른 역할의 횟수. 다음에 쓸 항목의 순서를 정한다 (청사진 설계 9.4).
+ *          regional_open · regional_policy_open — 지역 목록 열람과 정책별 원문 열기. 지역 정책을 항목으로 올릴 순서 (지역 검토 R2).
  */
 
 export const CARD_EVENTS = ["card_open", "card_open_informed", "trust_done", "reveal_reached", "source_open", "final_done", "revisit_open", "revisit_done"] as const;
@@ -33,5 +34,9 @@ export const metricEventSchema = z.union([
   z.object({ event: z.literal("game_done"), cardId, correct: z.boolean().nullable() }).strict(),
   // 청사진 "+ 정책 넣기"에서 찾는 정책이 없다 — 어떤 일(역할)에 쓸 정책인지만 (청사진 설계 9.4 빈칸 요청). 글은 받지 않는다.
   z.object({ event: z.literal("gap_request"), role: PlacementRole }).strict(),
+  // 우리 지역 청년 정책 목록을 열었다 — 지역은 싣지 않는다 (지역 검토 4장).
+  z.object({ event: z.literal("regional_open") }).strict(),
+  // 지역 목록에서 원문을 열었다 — 온통청년 정책 번호(20자리)만. 많이 열린 정책부터 항목으로 올린다 (지역 검토 6장 R2).
+  z.object({ event: z.literal("regional_policy_open"), policyId: z.string().regex(/^\d{20}$/) }).strict(),
 ]);
 export type MetricEvent = z.infer<typeof metricEventSchema>;
