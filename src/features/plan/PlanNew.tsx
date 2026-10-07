@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import type { Path } from "@/content/path-schema";
+import { GoalKind, type Path } from "@/content/path-schema";
 import { PATHS } from "@/content/paths";
 import { POLICIES } from "@/content/policies";
 import { PlanStage } from "@/content/schema";
@@ -23,7 +23,7 @@ import { describeBlueprintError } from "@/lib/firebase/blueprint";
 
 /*
  * 청사진 만들기 /plan/new (청사진 설계 7.2) — 세 단계, 한 단계씩.
- *   1 무엇이 되고 싶나 — 경로 견본 또는 직접 적기
+ *   1 무엇이 되고 싶나 — 경로 견본(목표 종류로 거른다) 또는 직접 적기
  *   2 지금의 나 — 학적·단계, 출발 시점(견본일 때), 만 나이(선택), 목표 연도. 고르는 대로 위 카드(ProfileCard)가 바뀐다.
  *   3 초안 — 저장하면 REV.1
  * 초안은 서버와 같은 함수(materialize)로 화면에서 그린다. 저장은 서버가 같은 계산을 다시 한다.
@@ -37,6 +37,9 @@ const GOAL_KIND_LABELS: Record<(typeof BlueprintGoalKind.options)[number], strin
   startup: "창업",
   other: "그 밖",
 };
+
+/** 견본이 가질 수 있는 목표 종류 — 1단계 거름 칩의 순서. */
+const PATH_KINDS = GoalKind.options;
 
 type Choice = { kind: "path"; path: Path } | { kind: "custom" };
 
@@ -68,6 +71,8 @@ function Steps({ user }: { user: User }) {
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [choice, setChoice] = useState<Choice | null>(null);
+  /** 1단계 견본 목록을 목표 종류로 거른다 — null이면 전부. */
+  const [kindFilter, setKindFilter] = useState<Path["goalKind"] | null>(null);
   const [kind, setKind] = useState<(typeof BlueprintGoalKind.options)[number]>("other");
   const [title, setTitle] = useState("");
   const [stage, setStage] = useState<(typeof PlanStage.options)[number] | null>(null);
@@ -147,11 +152,24 @@ function Steps({ user }: { user: User }) {
             <h1 id="goal-title" className="mt-1 text-[26px] leading-tight font-bold tracking-tight">
               무엇이 되고 싶나요?
             </h1>
-            <ul className="mt-6 flex flex-col gap-2">
-              {PATHS.map((path) => (
+            <div role="radiogroup" aria-label="목표 종류로 거르기" className="mt-6 flex flex-wrap gap-2">
+              <Chip role="radio" selected={kindFilter === null} onClick={() => setKindFilter(null)}>
+                전체 {PATHS.length}
+              </Chip>
+              {PATH_KINDS.filter((k) => PATHS.some((path) => path.goalKind === k)).map((k) => (
+                <Chip key={k} role="radio" selected={kindFilter === k} onClick={() => setKindFilter(k)}>
+                  {GOAL_KIND_LABELS[k]} {PATHS.filter((path) => path.goalKind === k).length}
+                </Chip>
+              ))}
+            </div>
+            <ul className="mt-4 flex flex-col gap-2">
+              {PATHS.filter((path) => !kindFilter || path.goalKind === kindFilter).map((path) => (
                 <li key={path.id}>
                   <Option selected={choice?.kind === "path" && choice.path.id === path.id} onClick={() => pick({ kind: "path", path })}>
-                    <span className="block text-[17px]">{path.title}</span>
+                    <span className="block text-[12px] text-smoke">
+                      {GOAL_KIND_LABELS[path.goalKind]} · {startLabel(path)}부터
+                    </span>
+                    <span className="mt-1 block text-[17px]">{path.title}</span>
                     <span className="mt-1 block text-[14px] text-graphite">{path.summary}</span>
                     {path.publishStatus === "draft" && <span className="mt-2 inline-block rounded-pill bg-pending-tint px-2.5 py-0.5 text-[11px] text-pending">초안 견본</span>}
                   </Option>

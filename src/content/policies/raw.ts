@@ -25,6 +25,9 @@ import { youthMonthlyRent } from "./youth-monthly-rent";
 import { youthStartupAcademy } from "./youth-startup-academy";
 import { youthStartupTaxRelief } from "./youth-startup-tax-relief";
 import { youthTomorrowSavings } from "./youth-tomorrow-savings";
+import { housingStabilityScholarship } from "./housing-stability-scholarship";
+import { nationalWorkScholarship } from "./national-work-scholarship";
+import { soldierSavings } from "./soldier-savings";
 
 /**
  * 정책 항목 원본 (청사진 설계 2장). `pnpm validate`가 이것을 받아 오류를 한꺼번에 모은다.
@@ -62,4 +65,8 @@ export const RAW_POLICIES: unknown[] = [
   youthJeonseLoan,
   // 청사진 공통 주거 — 청년 공공주택 (청사진 설계 9.3, 2026-10-04 작성·원문 대조 뒤 공개).
   happyHousing,
+  // 카드 없는 항목 — 수요 큰 순서로 추가 (2026-10-08 작성, 초안 — docs/source-check-2026-10-08.md 대조 뒤 공개).
+  soldierSavings,
+  nationalWorkScholarship,
+  housingStabilityScholarship,
 ];
