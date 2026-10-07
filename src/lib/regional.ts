@@ -1,4 +1,5 @@
 import { CITY_GU, findSido, REGIONS } from "@/content/regions";
+import type { Card } from "@/content/schema";
 
 /*
  * 우리 지역 청년 정책 — 온통청년 청년정책 API의 공식 데이터를 그대로 옮긴다 (docs/regional-benefits-review.md R1).
@@ -112,6 +113,25 @@ const CATEGORY_ALIASES: Record<string, string> = {
   참여권리: "참여·기반",
   "참여·기반": "참여·기반",
 };
+/**
+ * 통통 주제 → 온통청년 큰 분야. 주제 화면의 "우리 지역 청년 정책" 링크가 이 분야를 골라 둔 채 연다.
+ * 창업은 온통청년에서 일자리 아래(중분류 "창업")라 일자리로. 교통은 맞는 분야가 없다.
+ */
+export const TOPIC_REGIONAL_CATEGORY: Record<Card["category"], string | null> = {
+  asset: "금융·복지·문화",
+  housing: "주거",
+  employment: "일자리",
+  startup: "일자리",
+  transport: null,
+  culture: "금융·복지·문화",
+  education: "교육·직업훈련",
+};
+
+/** 신청이 끝나지 않은 정책 수 — 진입 링크의 "N개". 분야를 주면 그 분야만. */
+export function liveCount(policies: readonly RegionalPolicy[], today: string, category?: string | null): number {
+  return policies.filter((policy) => (!category || policy.category === category) && applyState(policy, today) !== "closed").length;
+}
+
 export function mainCategory(lclsfNm: string | undefined): string {
   const first = clean(lclsfNm).replaceAll("･", "·").split(",")[0]?.trim() ?? "";
   return CATEGORY_ALIASES[first] ?? first;

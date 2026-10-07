@@ -6,9 +6,9 @@ import { useEffect, useState } from "react";
 
 import { findSido } from "@/content/regions";
 import { RegionSetting } from "@/features/me/RegionSetting";
+import { useRegionalPolicies } from "@/features/regional/useRegionalPolicies";
 import { Notice } from "@/features/ui/Notice";
 import { kstDate } from "@/lib/date";
-import { apiFetch, describeError } from "@/lib/firebase/api";
 import { useAuth } from "@/lib/firebase/auth";
 import { track } from "@/lib/metrics/track";
 import { useUserData } from "@/lib/firebase/user-data";
@@ -34,7 +34,7 @@ const GROUPS: { state: ApplyState; title: string }[] = [
 
 const md = (date: string) => `${Number(date.slice(5, 7))}.${Number(date.slice(8, 10))}`;
 
-export function RegionalPolicies() {
+export function RegionalPolicies({ initialCategory }: { initialCategory?: string }) {
   const { user } = useAuth();
   const data = useUserData();
   const region = useRegion();
@@ -48,7 +48,7 @@ export function RegionalPolicies() {
       {data.profile?.audienceType !== "young_adult" ? (
         <p className="mt-4 text-graphite">청년(19–34) 정책 목록이라 청년으로 시작한 경우에만 볼 수 있어요.</p>
       ) : region ? (
-        <List key={`${region.sido}:${region.sigungu ?? ""}`} user={user} region={region} />
+        <List key={`${region.sido}:${region.sigungu ?? ""}`} user={user} region={region} initialCategory={initialCategory} />
       ) : (
         <>
           <p className="mt-4 text-[15px] text-graphite">사는 지역을 고르면 그 지역의 청년 정책을 모아 보여 드려요.</p>
@@ -59,27 +59,18 @@ export function RegionalPolicies() {
   );
 }
 
-function List({ user, region }: { user: User; region: Region }) {
-  const [policies, setPolicies] = useState<RegionalPolicy[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [category, setCategory] = useState<string | null>(null);
+function List({ user, region, initialCategory }: { user: User; region: Region; initialCategory?: string }) {
+  const { policies, error } = useRegionalPolicies(user, region);
+  const [picked, setCategory] = useState<string | null>(initialCategory ?? null);
   const [today] = useState(() => kstDate());
 
   // 열람 수만 — 지역은 싣지 않는다.
   useEffect(() => track({ event: "regional_open" }), []);
 
-  useEffect(() => {
-    let live = true;
-    apiFetch<{ policies: RegionalPolicy[] }>(user, "/api/regional", { method: "POST", body: { sido: region.sido, ...(region.sigungu && { sigungu: region.sigungu }) } })
-      .then((result) => live && setPolicies(result.policies))
-      .catch((caught) => live && setError(describeError(caught, "지역 정책을 불러오지 못했어요. 잠시 뒤 다시 열어 주세요.")));
-    return () => {
-      live = false;
-    };
-  }, [user, region.sido, region.sigungu]);
-
   const sidoName = findSido(region.sido)?.name ?? "";
   const categories = [...new Set((policies ?? []).map((p) => p.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ko"));
+  // 주제 화면에서 넘어온 분야가 이 지역에 없으면 전체로.
+  const category = picked && policies && !categories.includes(picked) ? null : picked;
   const shown = (policies ?? []).filter((p) => !category || p.category === category);
   const byState = (state: ApplyState) =>
     shown

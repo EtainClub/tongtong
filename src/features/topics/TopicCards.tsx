@@ -7,9 +7,11 @@ import { CARDS, findCard } from "@/content/cards";
 import { POLICIES } from "@/content/policies";
 import type { Card } from "@/content/schema";
 import { APPLICATION_LABELS, CATEGORY_DESCRIPTIONS, CATEGORY_LABELS } from "@/features/labels";
+import { RegionalEntry } from "@/features/regional/RegionalEntry";
 import { useAuth } from "@/lib/firebase/auth";
 import { useUserData } from "@/lib/firebase/user-data";
 import { currentApplication } from "@/lib/policy-state";
+import { TOPIC_REGIONAL_CATEGORY } from "@/lib/regional";
 
 /**
  * 주제별 카드 (설계 56장 /topics/{topic}, 로드맵 4.7).
@@ -84,6 +86,9 @@ export function TopicCards({ topic }: { topic: Card["category"] }) {
           </ul>
         </section>
       )}
+
+      {/* 이 주제와 맞는 분야의 지자체 청년 정책 — 확인하지 않은 공식 데이터라 카드·항목과 따로 둔다. */}
+      {TOPIC_REGIONAL_CATEGORY[topic] && <RegionalEntry category={TOPIC_REGIONAL_CATEGORY[topic]} className="mt-12" />}
     </main>
   );
 }

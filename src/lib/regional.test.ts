@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { applyState, classify, mainCategory, normalize, queryCodes, sidoOfAgency, type YouthcenterPolicy } from "./regional";
+import { applyState, classify, liveCount, mainCategory, normalize, queryCodes, sidoOfAgency, TOPIC_REGIONAL_CATEGORY, type YouthcenterPolicy } from "./regional";
 
 const seoulAll = ["11110", "11140", "11440", "11500"].join(",");
 const policy = (patch: Partial<YouthcenterPolicy>): YouthcenterPolicy => ({ plcyNo: "p1", plcyNm: "정책", zipCd: seoulAll, rgtrInstCdNm: "서울특별시", ...patch });
@@ -84,5 +84,16 @@ describe("normalize", () => {
     expect(applyState(p, "2026-10-07")).toBe("open");
     expect(applyState(p, "2026-10-15")).toBe("open");
     expect(applyState(p, "2026-10-16")).toBe("closed");
+  });
+
+  it("진입 링크의 수는 신청이 끝나지 않은 정책만, 분야를 주면 그 분야만", () => {
+    const list = [
+      normalize(policy({ plcyNo: "a", lclsfNm: "주거", aplyYmd: "20261001 ~ 20261015" }), "sido"),
+      normalize(policy({ plcyNo: "b", lclsfNm: "주거", aplyYmd: "20260101 ~ 20260131" }), "sido"),
+      normalize(policy({ plcyNo: "c", lclsfNm: "일자리", aplyPrdSeCd: "0057002" }), "sido"),
+    ];
+    expect(liveCount(list, "2026-10-07")).toBe(2);
+    expect(liveCount(list, "2026-10-07", "주거")).toBe(1);
+    expect(liveCount(list, "2026-10-07", TOPIC_REGIONAL_CATEGORY.startup)).toBe(1);
   });
 });
