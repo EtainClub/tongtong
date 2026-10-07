@@ -14,7 +14,7 @@ import {
   type BlueprintCreateInput,
   type BlueprintPatchInput,
 } from "@/lib/blueprint/apply";
-import { anchorRange, emptyBlueprint, materialize, pathHorizonYear } from "@/lib/blueprint/materialize";
+import { anchorRange, emptyBlueprint, materialize } from "@/lib/blueprint/materialize";
 import { MAX_ACTIVE_BLUEPRINTS, type Blueprint, type Version } from "@/lib/blueprint/model";
 import { currentMonth } from "@/lib/blueprint/month";
 import type { Profile } from "@/lib/user-state";
@@ -75,10 +75,10 @@ export async function createBlueprint(uid: string, input: BlueprintCreateInput, 
       if (input.pathId) {
         const path = findPath(input.pathId);
         if (!path) throw new BlueprintRejection("unknown-path");
-        // 견본의 출발 달은 사용자가 고른다 (검토 A-4). 목표 연도는 견본의 끝이 든 해보다 이를 수 없다.
+        // 견본의 출발 달은 사용자가 고른다 (검토 A-4). 목표 연도는 출발 달이 든 해보다 이를 수 없다 — 견본의 끝보다 이르면 목표 연도까지만 담는다.
         const anchor = input.anchor ?? baseline.asOf;
         checkAnchor(anchorRange(path, baseline.asOf), anchor);
-        if (input.horizonYear !== undefined && input.horizonYear < pathHorizonYear(path, anchor)) throw new BlueprintRejection("invalid-horizon");
+        if (input.horizonYear !== undefined && input.horizonYear < Number(anchor.slice(0, 4))) throw new BlueprintRejection("invalid-horizon");
         blueprint = materialize(path, visiblePolicies(), { id, baseline, now, anchor, title: input.title, horizonYear: input.horizonYear });
       } else {
         const horizonYear = input.horizonYear ?? Number(baseline.asOf.slice(0, 4)) + 5;

@@ -16,7 +16,7 @@ type Base = { id: string; baseline: Baseline; now: Date };
 /** 견본이 그리는 길이 — 출발점에서 마지막 이정표·칸까지 몇 달. */
 const pathLength = (path: Path) => Math.max(...path.milestones.map((m) => m.offsetMonths), ...path.slots.map((s) => s.toOffset ?? s.fromOffset));
 
-/** 출발 달에서 견본의 마지막 시점이 들어가는 해 — 목표 연도의 기본값이자 하한(그보다 이르면 칸이 목표 연도 밖으로 나간다). */
+/** 출발 달에서 견본의 마지막 시점이 들어가는 해 — 목표 연도의 기본값. 그보다 이르게 잡으면 견본을 목표 연도까지만 담는다(materialize). */
 export function pathHorizonYear(path: Path, anchor: string): number {
   return Number(addMonths(anchor, pathLength(path)).slice(0, 4));
 }
@@ -39,6 +39,8 @@ export function emptyBlueprint({ id, baseline, now, goal }: Base & { goal: Goal 
  * 견본 → 청사진. 칸이 가리키는 항목이 지금 보이지 않으면(초안이 운영에서 빠졌을 때) 그 칸은 건너뛴다.
  * 이정표·배치 id는 견본의 id를 그대로 쓴다 — 견본 안에서 이미 겹치지 않는다(validatePath).
  * anchor는 견본의 출발점(offset 0)이 되는 달이다. 없으면 기준 달(오늘). 범위 검사는 부르는 쪽이 한다(anchorRange).
+ * 목표 연도가 견본의 끝보다 이르면 목표 연도 안에 드는 이정표와 칸만 담는다 — 목표 연도 밖의 시점은 둘 수 없다(apply checkRange).
+ * 목표 연도는 출발 달이 든 해보다 이를 수 없다(부르는 쪽이 검사한다) — 출발점 이정표는 늘 남는다.
  */
 export function materialize(
   path: Path,
@@ -47,6 +49,9 @@ export function materialize(
 ): Blueprint {
   const at = now.toISOString();
   const month = (offset: number) => addMonths(anchor, offset);
+  const goalYear = horizonYear ?? pathHorizonYear(path, anchor);
+  const within = (offset: number) => Number(month(offset).slice(0, 4)) <= goalYear;
+  const milestones = path.milestones.filter((m) => within(m.offsetMonths));
   return {
     ...emptyBlueprint({
       id,
@@ -55,15 +60,16 @@ export function materialize(
       goal: {
         kind: path.goalKind,
         title: title?.trim() || path.title,
-        horizonYear: horizonYear ?? pathHorizonYear(path, anchor),
+        horizonYear: goalYear,
         pathId: path.id,
         pathVersion: cardVersion(path),
       },
     }),
-    milestones: path.milestones.map((m) => ({ id: m.id, label: m.label, at: month(m.offsetMonths), ...(m.stage && { stage: m.stage }) })),
+    milestones: milestones.map((m) => ({ id: m.id, label: m.label, at: month(m.offsetMonths), ...(m.stage && { stage: m.stage }) })),
     placements: path.slots.flatMap((slot) => {
       const policy = policies.get(slot.policyId);
-      if (!policy) return [];
+      if (!policy || !within(slot.toOffset ?? slot.fromOffset)) return [];
+      if (slot.milestoneId && !milestones.some((m) => m.id === slot.milestoneId)) return [];
       return [
         {
           id: slot.id,

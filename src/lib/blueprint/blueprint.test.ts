@@ -70,6 +70,16 @@ describe("materialize", () => {
     expect(pathHorizonYear(phd, "2028-03")).toBe(2036);
   });
 
+  it("목표 연도가 견본의 끝보다 이르면 목표 연도까지만 담는다", () => {
+    const short = materialize(phd, policies, { id: "bp1", baseline, now, horizonYear: 2029 });
+    expect(blueprintSchema.safeParse(short).success).toBe(true);
+    expect(short.goal.horizonYear).toBe(2029);
+    expect(short.milestones.map((m) => m.id)).toEqual(["junior", "master"]);
+    expect(short.placements.every((p) => Number((p.to ?? p.from).slice(0, 4)) <= 2029)).toBe(true);
+    expect(short.placements.some((p) => p.id === "stipend")).toBe(false); // 2034년에 끝나는 칸
+    expect(lastPlacedYear(short)).toBeLessThanOrEqual(2029);
+  });
+
   it("출발 달 범위 — 4년 전부터, 견본 끝이 기준 + 10년을 넘지 않는 달까지", () => {
     const range = anchorRange(phd, "2026-10");
     expect(range.min).toBe("2022-10");

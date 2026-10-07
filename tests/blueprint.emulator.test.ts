@@ -87,14 +87,19 @@ const enabled = Boolean(process.env.FIRESTORE_EMULATOR_HOST && process.env.FIREB
     });
   });
 
-  test("견본의 출발 달 — 고른 달부터 놓이고, 범위 밖이나 견본 끝보다 이른 목표 연도는 거절 (검토 A-4)", async () => {
+  test("견본의 출발 달 — 고른 달부터 놓이고, 범위 밖이나 출발 해보다 이른 목표 연도는 거절 (검토 A-4)", async () => {
     const now = new Date("2026-10-01T03:00:00Z");
     const created = await store.createBlueprint(uid, { ...fromPath, anchor: "2028-03" }, now);
     expect(created.milestones.find((m) => m.id === "junior")?.at).toBe("2028-03");
     expect(created.baseline.asOf).toBe("2026-10");
     await store.archiveBlueprint(uid, created.id);
     await expect(store.createBlueprint(uid, { ...fromPath, anchor: "2030-03" }, now)).rejects.toMatchObject({ status: 400, reason: "invalid-range" });
-    await expect(store.createBlueprint(uid, { ...fromPath, anchor: "2028-03", horizonYear: 2035 }, now)).rejects.toMatchObject({ status: 400, reason: "invalid-horizon" });
+    await expect(store.createBlueprint(uid, { ...fromPath, anchor: "2028-03", horizonYear: 2027 }, now)).rejects.toMatchObject({ status: 400, reason: "invalid-horizon" });
+    // 견본의 끝보다 이른 목표 연도는 받고, 그해까지만 담는다.
+    const short = await store.createBlueprint(uid, { ...fromPath, anchor: "2028-03", horizonYear: 2030 }, now);
+    expect(short.goal.horizonYear).toBe(2030);
+    expect(short.milestones.every((m) => Number(m.at.slice(0, 4)) <= 2030)).toBe(true);
+    expect(short.placements.every((p) => Number((p.to ?? p.from).slice(0, 4)) <= 2030)).toBe(true);
   });
 
   test("청사진만 지우면 보관한 것과 REV 기록까지 사라지고 판단 기록은 남는다 (검토 A-10)", async () => {
