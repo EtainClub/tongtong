@@ -12,6 +12,7 @@ import { NotificationSettings } from "@/features/me/NotificationSettings";
 import { RegionSetting } from "@/features/me/RegionSetting";
 import { useBlueprintChecks } from "@/features/plan/useBlueprintChecks";
 import { Notice } from "@/features/ui/Notice";
+import { formatVersion } from "@/lib/build-info";
 import { apiFetch, describeError } from "@/lib/firebase/api";
 import { linkGoogle, signOutToAnonymous, useAuth } from "@/lib/firebase/auth";
 import { readBlueprintsForExport, useActiveBlueprint } from "@/lib/firebase/blueprint";
@@ -242,10 +243,12 @@ export function MyRecords() {
         </div>
       </details>
 
-      <p className="mt-6 text-[13px] text-smoke">
+      <p className="mt-6 flex items-baseline justify-between gap-3 text-[13px] text-smoke">
         <Link href="/privacy" className="underline underline-offset-4">
           개인정보처리방침
         </Link>
+        {/* 어느 빌드인지 — 문제를 알려 줄 때 이 줄을 함께 받는다. */}
+        <span className="font-mono tabular text-[11px] text-ash">v{formatVersion()}</span>
       </p>
 
       {/* 버튼들이 화면 위쪽에 있어도 결과가 보이도록 아래에 붙인다. */}
